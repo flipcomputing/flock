@@ -1,10 +1,23 @@
 import * as Blockly from 'blockly';
 import { loops } from 'blockly/blocks';
+import '@blockly/field-date';
+import './fieldTimes.js';
 import { getHelpUrlFor } from './blocks.js';
 import { nextVariableName } from './variableNames.js';
 import { translate, getTooltip } from '../main/translation.js';
-import { uniqueColumnNames } from '../api/tables.js';
-import { loadStartData, renameStartDataColumns, saveStartData, startData } from './tableData.js';
+import { normaliseDate, normaliseMoney, uniqueColumnNames } from '../api/tables.js';
+import {
+  CURRENCIES,
+  columnTypeFor,
+  currencyOptions,
+  loadStartData,
+  renameStartDataColumns,
+  saveStartData,
+  startColumnSpecs,
+  startData,
+  startRows,
+  typeProblem,
+} from './tableData.js';
 import { openTableEditor } from '../ui/tableEditor.js';
 import { makeTableDataField, TABLE_DATA_FIELD_NAME } from './fieldTableData.js';
 
@@ -94,6 +107,8 @@ const columnText = (item, renamed) => {
 export function tableColumnInfo(workspace, tableName, renamed = null) {
   const columns = [];
   const named = new Map();
+  const specs = new Map();
+  const layouts = new Set();
   let found = false;
   let complete = true;
   for (const creator of workspace?.getBlocksByType('table_create', false) ?? []) {
@@ -111,14 +126,23 @@ export function tableColumnInfo(workspace, tableName, renamed = null) {
       .map((input) => input.connection.targetBlock());
     const given = items.map((item) => columnText(item, renamed));
     const unique = uniqueColumnNames(given);
+    const layout = [];
     given.forEach((name, i) => {
       if (!name) {
         complete = false;
         return;
       }
       named.set(items[i].id, unique[i]);
-      if (!columns.includes(unique[i])) columns.push(unique[i]);
+      const spec = columnTypeFor(creator, unique[i]);
+      layout.push(spec);
+      if (!columns.includes(unique[i])) {
+        columns.push(unique[i]);
+        specs.set(unique[i], spec);
+      } else if (JSON.stringify(specs.get(unique[i])) !== JSON.stringify(spec)) {
+        specs.set(unique[i], { name: unique[i], type: null });
+      }
     });
+    layouts.add(JSON.stringify(layout));
   }
   for (const adder of workspace?.getBlocksByType(TABLE_ADD_COLUMN, false) ?? []) {
     if (tableName !== undefined && !sameName(adder.getField('TABLE')?.getText(), tableName)) {
@@ -132,8 +156,10 @@ export function tableColumnInfo(workspace, tableName, renamed = null) {
     const unique = uniqueColumnNames([...columns, name]).at(-1);
     named.set(adder.getInputTargetBlock('NAME').id, unique);
     columns.push(unique);
+    specs.set(unique, { name: unique, type: null });
   }
-  return { columns, complete: found && complete, named };
+  const positional = found && complete && layouts.size === 1;
+  return { columns, complete: found && complete, positional, named, specs };
 }
 
 function addedColumnName(adder, renamed = null) {
@@ -162,6 +188,11 @@ function columnTableName(owner) {
 }
 
 const defaultColumnName = () => translate('table_default_column_name');
+
+const DATE_BLOCK = 'date_value';
+const MONEY_BLOCK = 'money_value';
+const TIME_BLOCK = 'time_value';
+const DATETIME_BLOCK = 'datetime_value';
 
 class FieldTableColumn extends Blockly.FieldDropdown {
   constructor(value) {
@@ -262,6 +293,113 @@ export function installTableColumnWarnings(workspace) {
   return refresh;
 }
 
+const VALUE_WARNING = 'table-value';
+const START_DATA_WARNING = 'table-start-data';
+const VALUE_BLOCKS = ['table_set_value', 'table_add_row', 'table_set_row', 'table_set_column'];
+
+function literalValue(block) {
+  switch (block?.type) {
+    case 'text':
+      return { value: block.getFieldValue('TEXT') };
+    case 'math_number':
+      return { value: Number(block.getFieldValue('NUM')) };
+    case DATE_BLOCK:
+      return { value: block.getFieldValue('DATE') };
+    case TIME_BLOCK:
+      return { value: block.getFieldValue('TIME') };
+    case DATETIME_BLOCK:
+      return { value: block.getFieldValue('DATETIME') };
+    case MONEY_BLOCK:
+      return { value: Number(block.getFieldValue('AMOUNT')) };
+    case 'colour':
+    case 'colour_from_string':
+      return { value: block.getFieldValue('COLOR') };
+    case 'colour_picker':
+      return { value: block.getFieldValue('COLOUR') };
+    default:
+      return null;
+  }
+}
+
+function listLiterals(list) {
+  if (list?.type !== 'lists_create_with') return [];
+  return list.inputList
+    .filter((input) => input.name?.startsWith('ADD'))
+    .map((input) => literalValue(input.connection?.targetBlock()));
+}
+
+export function tableValueWarningFor(owner) {
+  const table = owner.getField('TABLE')?.getText();
+  if (table === undefined) return null;
+  const { columns, specs, positional } = tableColumnInfo(owner.workspace, table);
+  const checks = [];
+  if (owner.type === 'table_set_value' || owner.type === 'table_set_column') {
+    const column = literalColumnName(owner);
+    if (!column) return null;
+    const literals =
+      owner.type === 'table_set_value'
+        ? [literalValue(owner.getInputTargetBlock('VALUE'))]
+        : listLiterals(owner.getInputTargetBlock('VALUES'));
+    for (const literal of literals) checks.push([specs.get(column), literal]);
+  } else {
+    if (!positional) return null;
+    listLiterals(owner.getInputTargetBlock('VALUES')).forEach((literal, i) =>
+      checks.push([specs.get(columns[i]), literal])
+    );
+  }
+  for (const [spec, literal] of checks) {
+    const problem = literal && typeProblem(table, spec, literal.value);
+    if (problem) return problem;
+  }
+  return null;
+}
+
+export function tableStartDataWarningFor(creator) {
+  const specs = startColumnSpecs(creator);
+  if (!specs) return null;
+  const table = creator.getField('VAR')?.getText() ?? '';
+  for (const [r, row] of startRows(creator).entries()) {
+    for (const [c, spec] of specs.entries()) {
+      const problem = typeProblem(table, spec, row[c]);
+      if (problem) {
+        return translate('table_start_data_warning')
+          .replace('%1', String(r))
+          .replace('%2', problem);
+      }
+    }
+  }
+  return null;
+}
+
+export function installTableValueWarnings(workspace) {
+  const shown = new WeakMap();
+  const show = (block, id, text) => {
+    const current = shown.get(block) ?? {};
+    if ((current[id] ?? null) === text) return;
+    shown.set(block, { ...current, [id]: text });
+    block.setWarningText(text, id);
+  };
+
+  function refresh() {
+    for (const type of VALUE_BLOCKS) {
+      for (const owner of workspace.getBlocksByType(type, false)) {
+        show(owner, VALUE_WARNING, tableValueWarningFor(owner));
+      }
+    }
+    for (const creator of workspace.getBlocksByType('table_create', false)) {
+      show(creator, START_DATA_WARNING, tableStartDataWarningFor(creator));
+    }
+  }
+
+  workspace.addChangeListener(function (event) {
+    if (event.isUiEvent && event.type !== Blockly.Events.FINISHED_LOADING) return;
+    refresh();
+  });
+
+  refresh();
+  return refresh;
+}
+
 function addedColumnFor(textBlock) {
   const adder = textBlock?.getParent();
   if (adder?.type !== TABLE_ADD_COLUMN) return null;
@@ -325,8 +463,9 @@ export function installTableColumnRenames(workspace) {
 
   workspace.addChangeListener(function (event) {
     if (event.isUiEvent || event.type !== Blockly.Events.BLOCK_CHANGE) return;
-    if (event.element !== 'field' || event.name !== 'TEXT') return;
+    if (event.element !== 'field') return;
     const textBlock = workspace.getBlockById(event.blockId);
+    if (event.name !== 'TEXT') return;
     const tableName = columnListTable(textBlock);
     if (tableName === undefined) return;
     const handled = textBlock.startDataRenamed_ === event.newValue;
@@ -656,6 +795,59 @@ export function defineTableBlocks() {
           same ? translate('table_loop_same_variable') : null,
           'table_loop_same_variable'
         );
+      });
+    }
+  );
+
+  defineTableBlock(
+    DATE_BLOCK,
+    () => ({
+      args0: [{ type: 'field_date', name: 'DATE', date: '2026-01-01' }],
+      output: 'String',
+    }),
+    function () {
+      this.setStyle('variable_blocks');
+      const field = this.getField('DATE');
+      field.setValidator((value) => normaliseDate(value));
+    }
+  );
+
+  for (const [type, field, fieldType, value] of [
+    [TIME_BLOCK, 'TIME', 'field_time', '12:00'],
+    [DATETIME_BLOCK, 'DATETIME', 'field_datetime', '2026-01-01T12:00'],
+  ]) {
+    defineTableBlock(
+      type,
+      () => ({ args0: [{ type: fieldType, name: field, value }], output: 'String' }),
+      function () {
+        this.setStyle('variable_blocks');
+      }
+    );
+  }
+
+  defineTableBlock(
+    MONEY_BLOCK,
+    () => ({
+      args0: [
+        { type: 'field_dropdown', name: 'CURRENCY', options: currencyOptions() },
+        { type: 'field_input', name: 'AMOUNT', text: '0' },
+      ],
+      output: 'Number',
+    }),
+    function () {
+      this.setStyle('variable_blocks');
+      const currency = translate('table_default_currency');
+      if (CURRENCIES.includes(currency)) this.getField('CURRENCY').setValue(currency);
+      this.getField('CURRENCY').setValidator((code) => {
+        const amount = normaliseMoney(this.getFieldValue('AMOUNT'), code);
+        if (amount !== null && String(amount) !== this.getFieldValue('AMOUNT')) {
+          this.setFieldValue(String(amount), 'AMOUNT');
+        }
+        return code;
+      });
+      this.getField('AMOUNT').setValidator((value) => {
+        const amount = normaliseMoney(value, this.getFieldValue('CURRENCY'));
+        return amount === null ? null : String(amount);
       });
     }
   );

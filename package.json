@@ -43,6 +43,7 @@
     "@blockly/block-dynamic-connection": "^13.4.0",
     "@blockly/block-plus-minus": "^13.4.0",
     "@blockly/field-colour": "^13.4.0",
+    "@blockly/field-date": "^13.4.0",
     "@blockly/field-grid-dropdown": "^13.4.0",
     "@blockly/field-multilineinput": "^13.4.0",
     "@blockly/plugin-scroll-options": "^13.4.0",

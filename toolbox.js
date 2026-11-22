@@ -4431,11 +4431,54 @@ const textList = (items) => ({
   },
 });
 
+const defaultColumnSpecs = () => [
+  { name: translate('table_default_column_name'), type: null },
+  { name: translate('table_default_value_column_name'), type: null },
+];
+
+const listOf = (items, inline) => ({
+  block: {
+    type: 'lists_create_with',
+    inline,
+    extraState: { itemCount: items.length },
+    inputs: Object.fromEntries(items.map((item, i) => [`ADD${i}`, item])),
+  },
+});
+
+function todayText() {
+  const now = new Date();
+  const pad = (n) => String(n).padStart(2, '0');
+  return `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())}`;
+}
+
+function valueShadowFor(spec) {
+  switch (spec?.type) {
+    case 'number':
+      return numberShadow(0);
+    case 'money':
+      return { shadow: { type: 'money_value', fields: { CURRENCY: spec.currency, AMOUNT: '0' } } };
+    case 'date':
+      return { shadow: { type: 'date_value', fields: { DATE: todayText() } } };
+    case 'time':
+      return { shadow: { type: 'time_value', fields: { TIME: '12:00' } } };
+    case 'datetime':
+      return { shadow: { type: 'datetime_value', fields: { DATETIME: `${todayText()}T12:00` } } };
+    case 'color':
+      return { shadow: { type: 'colour', fields: { COLOR: '#ff0000' } } };
+    case 'category':
+      return textShadow(spec.values?.[0] ?? '');
+    default:
+      return textShadow('');
+  }
+}
+
 export function tableFlyoutBlocks(
   table,
   freshTable,
-  firstColumn = translate('table_default_column_name')
+  firstColumn = translate('table_default_column_name'),
+  columnSpecs = []
 ) {
+  const specs = columnSpecs.length ? columnSpecs : defaultColumnSpecs();
   const TABLE = { name: table };
   const column = { shadow: { type: 'table_column_menu', fields: { COLUMN: firstColumn } } };
   const rowVariable = { block: { type: 'variables_get', fields: { VAR: { name: 'row' } } } };
@@ -4445,19 +4488,14 @@ export function tableFlyoutBlocks(
       type: 'table_create',
       keyword: 'table',
       fields: { VAR: { name: freshTable } },
-      inputs: {
-        COLUMNS: textList([
-          translate('table_default_column_name'),
-          translate('table_default_value_column_name'),
-        ]),
-      },
+      inputs: { COLUMNS: textList(defaultColumnSpecs().map((spec) => spec.name)) },
     },
     {
       kind: 'block',
       type: 'table_add_row',
       keyword: 'insert',
       fields: { TABLE },
-      inputs: { VALUES: textList(['', '']) },
+      inputs: { VALUES: listOf(specs.map(valueShadowFor), true) },
     },
     {
       kind: 'block',
@@ -4543,14 +4581,18 @@ export function tableFlyoutBlocks(
       kind: 'block',
       type: 'table_set_value',
       fields: { TABLE },
-      inputs: { ROW: numberShadow(0), COLUMN: column, VALUE: textShadow('') },
+      inputs: {
+        ROW: numberShadow(0),
+        COLUMN: column,
+        VALUE: valueShadowFor(specs.find((spec) => spec.name === firstColumn)),
+      },
     },
     {
       kind: 'block',
       type: 'table_set_row',
       keyword: 'replace',
       fields: { TABLE },
-      inputs: { ROW: numberShadow(0), VALUES: textList(['', '']) },
+      inputs: { ROW: numberShadow(0), VALUES: listOf(specs.map(valueShadowFor), true) },
     },
     {
       kind: 'block',
@@ -4583,6 +4625,24 @@ const toolboxData = {
   icon: './images/data.svg',
   categorystyle: 'variables_category',
   contents: [
+    ...(isFeatureEnabled('dataScience')
+      ? [
+          {
+            kind: 'block',
+            type: 'money_value',
+            keyword: 'currency',
+            fields: { CURRENCY: translate('table_default_currency'), AMOUNT: '1.5' },
+          },
+          { kind: 'block', type: 'date_value', keyword: 'day', fields: { DATE: todayText() } },
+          { kind: 'block', type: 'time_value', keyword: 'clock', fields: { TIME: '12:00' } },
+          {
+            kind: 'block',
+            type: 'datetime_value',
+            keyword: 'timestamp',
+            fields: { DATETIME: `${todayText()}T12:00` },
+          },
+        ]
+      : []),
     toolboxVariables,
     toolboxLists,
     ...(isFeatureEnabled('dataScience') ? [toolboxTables] : []),

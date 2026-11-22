@@ -411,6 +411,19 @@ export default {
   table_for_each_row: 'para cada fila %1 número %2 en %3', // ai
   table_row_value: '%1 de %2', // ai
   table_row_values: 'lista de %1', // ai
+  date_value: 'fecha %1', // ai
+  time_value: 'hora %1', // ai
+  datetime_value: 'fecha y hora %1', // ai
+  money_value: '%1 %2', // ai
+  table_column_type_text: 'texto', // ai
+  table_column_type_number: 'número', // ai
+  table_column_type_money: 'dinero', // ai
+  table_column_type_money_in: 'dinero (%1)', // ai
+  table_column_type_date: 'fecha', // ai
+  table_column_type_time: 'hora', // ai
+  table_column_type_datetime: 'fecha y hora', // ai
+  table_column_type_category: 'categoría', // ai
+  table_column_type_color: 'color', // ai
   ui_text: 'UI texto %1 %2 en x: %3 y: %4\ntamaño: %5 por %6 segundos color: %7 en: %8 alfa %9', // human
   ui_align: 'desde',
   ui_button: 'UI botón %1 %2 en x: %3 y: %4\ntamaño: %5 tamaño del texto: %6 texto: %7 en: %8', // human
@@ -1443,10 +1456,16 @@ export default {
   table_row_value_tooltip: 'El valor de esta columna en una fila.', // ai
   table_row_values_tooltip:
     'Una lista con los valores de una fila en el orden de las columnas. Úsala para copiar una fila a otra tabla o con bloques de listas.', // ai
+  time_value_tooltip: 'Una hora del día, escrita como horas:minutos, por ejemplo 14:30.', // ai
+  datetime_value_tooltip: 'Una fecha y una hora del día, por ejemplo 2026-11-22T14:30.', // ai
+  date_value_tooltip: 'Una fecha, escrita como año-mes-día, por ejemplo 2026-11-22.', // ai
+  money_value_tooltip: 'Una cantidad de dinero. Se guarda como un número, redondeado a la moneda más pequeña.', // ai
   table_column_menu_tooltip: 'Elige una columna de la tabla o pon aquí un bloque de texto.', // ai
   table_default_column_name: 'Nombre', // ai
   table_default_value_column_name: 'Valor', // ai
   table_default_new_column_name: 'Puntos', // ai
+  table_default_currency: 'EUR', // ai
+  table_start_data_warning: 'Fila %1 de los datos iniciales: %2', // ai
   table_column_missing_warning: "%1 no tiene una columna llamada '%2'. Sus columnas son: %3.", // ai
   table_delete_row_tooltip:
     'Borra una fila de la tabla, o todas sus filas. Las filas empiezan en 0, y las filas que siguen a una fila borrada suben un puesto.', // ai
@@ -1564,6 +1583,20 @@ export default {
   table_column_length: 'Esa columna tiene {given} valores, pero {table} tiene {count} filas.', // ai
   table_duplicate_column:
     '{table} ya tiene una columna llamada {column}, así que la copia se llama {renamed}.', // ai
+  table_value_not_number:
+    "La columna {column} de {table} es para números, así que '{value}' no encaja.", // ai
+  table_value_not_money:
+    "La columna {column} de {table} es para cantidades de dinero, así que '{value}' no encaja.", // ai
+  table_value_not_date:
+    "La columna {column} de {table} es para fechas como 2026-11-22, así que '{value}' no encaja.", // ai
+  table_value_not_time:
+    "La columna {column} de {table} es para horas como 14:30, así que '{value}' no encaja.", // ai
+  table_value_not_datetime:
+    "La columna {column} de {table} es para fechas y horas como 2026-11-22T14:30, así que '{value}' no encaja.", // ai
+  table_value_not_color:
+    "La columna {column} de {table} es para colores como #ff8800, así que '{value}' no encaja.", // ai
+  table_value_not_category:
+    "La columna {column} de {table} puede ser {values}, así que '{value}' no encaja.", // ai
   table_not_a_row:
     'Eso no es una fila de tabla. Usa una fila de un bloque para cada fila o de un bloque fila de.', // ai
   table_loop_same_variable: 'Usa variables distintas para la fila y su número.', // ai
@@ -1589,7 +1622,7 @@ export default {
   table_editor_column_name: 'Nombre de la columna', // ai
   table_editor_cell_label: '%1, fila %2', // ai
   table_editor_keys:
-    'Usa las flechas para moverte entre celdas. Pulsa Intro para cambiar una celda, y luego Intro para guardar o Escape para cancelar.', // ai
+    'Usa las flechas para moverte entre celdas. Pulsa Intro para cambiar una celda, y luego Intro para guardar o Escape para cancelar. En el nombre de una columna, pulsa Intro para cambiar su nombre y su tipo. En una celda de color, Intro abre el selector de color.', // ai
   table_editor_no_columns: 'Esta tabla aún no tiene columnas. Añade una columna para empezar.', // ai
   table_editor_computed_columns:
     'Para editar esta tabla aquí, pon bloques de texto con los nombres de las columnas en la lista de columnas.', // ai
@@ -1600,6 +1633,16 @@ export default {
   table_editor_column_deleted: 'Columna %1 borrada', // ai
   table_editor_cell_cleared: 'Celda vaciada', // ai
   table_editor_column_moved: 'Columna %1 movida', // ai
+  table_column_type_any: 'cualquiera', // ai
+  table_editor_field_type: 'Tipo', // ai
+  table_editor_field_currency: 'Moneda', // ai
+  table_editor_field_values: 'Valores', // ai
+  table_editor_add_value: 'Añadir valor', // ai
+  table_editor_add_value_option: 'Añadir…', // ai
+  table_editor_value_label: 'Valor', // ai
+  table_editor_remove_value: 'Quitar %1', // ai
+  table_editor_value_added: "'%1' añadido a los valores de %2", // ai
+  table_editor_color_label: '%1, fila %2, color %3', // ai
   animation_group_not_found: 'No se encontró ninguna animación llamada {group}.', // ai
   sound_load_failed: 'No se pudo cargar el sonido {sound}.', // ai
   text_creation_failed:

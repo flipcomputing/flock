@@ -289,3 +289,203 @@
 [data-theme='contrast'] .table-editor-grid .table-editor-names th[data-row] {
   border-bottom: 2px solid var(--color-text-primary);
 }
+
+.table-editor-grid td[data-type='number'],
+.table-editor-grid td[data-type='money'] {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+.table-editor-warning-icon {
+  flex: none;
+  vertical-align: -3px;
+}
+
+.table-editor-warning-shape {
+  fill: #511d91;
+  stroke: #fff;
+  stroke-width: 1px;
+}
+
+.table-editor-warning-symbol {
+  fill: #fff;
+}
+
+.table-editor-grid td.table-editor-invalid .table-editor-warning-icon {
+  margin-right: 4px;
+}
+
+.table-editor-problem {
+  display: flex;
+  gap: 6px;
+  align-items: flex-start;
+  margin: 0;
+  font-size: 13px;
+}
+
+.table-editor-problem[hidden] {
+  display: none;
+}
+
+.table-editor-grid td.table-editor-colour {
+  font-family: monospace;
+  font-size: 12px;
+}
+
+body.color-picker-open .custom-color-picker {
+  z-index: 10001;
+}
+
+.table-editor .table-editor-small-button path {
+  fill: none;
+}
+
+.table-editor-grid .table-editor-cell-editing {
+  position: relative;
+  overflow: visible;
+  color: transparent;
+}
+
+.table-editor-grid .table-editor-cell-editing > svg {
+  visibility: hidden;
+}
+
+.table-editor-grid .table-editor-cell-editing > .table-editor-input {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  box-sizing: border-box;
+  width: 100%;
+  min-width: 0;
+  height: 100%;
+  padding: 4px 8px;
+  font: inherit;
+  text-align: inherit;
+  color: var(--color-text-primary);
+  background: var(--color-bg);
+  outline: 3px solid var(--color-focus-outline);
+  outline-offset: -3px;
+}
+
+.table-editor-grid .table-editor-cell-editing > select.table-editor-input {
+  padding: 0 4px;
+}
+
+.table-editor-grid .table-editor-cell-editing > input[type='date'],
+.table-editor-grid .table-editor-cell-editing > input[type='time'],
+.table-editor-grid .table-editor-cell-editing > input[type='datetime-local'] {
+  width: auto;
+  min-width: 100%;
+}
+
+.table-editor-grid tr.table-editor-config {
+  background: var(--color-bg);
+}
+
+.table-editor-grid .table-editor-config td,
+.table-editor-grid .table-editor-config th {
+  height: auto;
+  background: transparent;
+  border-right-color: transparent;
+}
+
+.table-editor-grid .table-editor-config td.table-editor-config-cell {
+  overflow: visible;
+  vertical-align: top;
+}
+
+.table-editor-config-cell .table-editor-header-editor {
+  width: 0;
+}
+
+.table-editor-config-cell .table-editor-header-editor > *,
+.table-editor-config-cell .table-editor-values-field > * {
+  box-sizing: border-box;
+  width: 12em;
+}
+
+.table-editor-header-editor {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.table-editor-header-editor [hidden] {
+  display: none;
+}
+
+.table-editor-values-field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.table-editor-values-label {
+  font-size: 12px;
+}
+
+.table-editor-field-input {
+  min-width: 8em;
+  padding: 4px 6px;
+  font: inherit;
+  font-size: 14px;
+  color: var(--color-text-primary);
+  background: var(--color-bg);
+  border: 1px solid var(--color-border);
+  border-radius: 4px;
+}
+
+.table-editor-field-input:focus-visible,
+.table-editor-text-button:focus-visible,
+.table-editor-small-button:focus-visible {
+  outline: 3px solid var(--color-focus-outline);
+  outline-offset: 1px;
+}
+
+.table-editor-values {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  max-height: 10em;
+  margin: 0;
+  padding: 0;
+  overflow-y: auto;
+  list-style: none;
+}
+
+.table-editor-values li {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.table-editor-small-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  color: var(--color-text-primary);
+  background: transparent;
+  border: 1px solid var(--color-border);
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.table-editor-small-button svg {
+  width: 16px;
+  height: 16px;
+}
+
+.table-editor-text-button {
+  align-self: flex-start;
+  padding: 4px 10px;
+  font: inherit;
+  font-size: 13px;
+  color: var(--color-text-primary);
+  background: var(--color-bg);
+  border: 1px solid var(--color-border);
+  border-radius: 4px;
+  cursor: pointer;
+}

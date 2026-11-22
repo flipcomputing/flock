@@ -2,7 +2,7 @@ import * as Blockly from 'blockly';
 import { budgetYield } from './generators-control.js';
 import { getVariableInfo } from './generators-utilities.js';
 import { localVariableIds } from '../blocks/variableScope.js';
-import { startRows } from '../blocks/tableData.js';
+import { startData, startRows } from '../blocks/tableData.js';
 
 export function registerTablesGenerators(javascriptGenerator) {
   const value = (block, name, fallback) =>
@@ -15,7 +15,10 @@ export function registerTablesGenerators(javascriptGenerator) {
     const { generatedName, userVariableName } = getVariableInfo(block, 'VAR');
     const columns = value(block, 'COLUMNS', '[]');
     const rows = startRows(block);
-    const data = rows.length ? `, ${JSON.stringify(rows)}` : '';
+    const { types } = startData(block);
+    const entries = Object.entries(types);
+    const typed = entries.length ? `, ${JSON.stringify(entries)}` : '';
+    const data = rows.length || typed ? `, ${JSON.stringify(rows)}${typed}` : '';
     return `${generatedName} = createTable(${JSON.stringify(userVariableName)}, ${columns}${data});\n`;
   };
 
@@ -125,6 +128,27 @@ export function registerTablesGenerators(javascriptGenerator) {
       branch +
       '}\n'
     );
+  };
+
+  javascriptGenerator.forBlock['date_value'] = function (block) {
+    return [JSON.stringify(block.getFieldValue('DATE')), javascriptGenerator.ORDER_ATOMIC];
+  };
+
+  javascriptGenerator.forBlock['time_value'] = function (block) {
+    return [JSON.stringify(block.getFieldValue('TIME')), javascriptGenerator.ORDER_ATOMIC];
+  };
+
+  javascriptGenerator.forBlock['datetime_value'] = function (block) {
+    return [JSON.stringify(block.getFieldValue('DATETIME')), javascriptGenerator.ORDER_ATOMIC];
+  };
+
+  javascriptGenerator.forBlock['money_value'] = function (block) {
+    const amount = Number(block.getFieldValue('AMOUNT'));
+    const code = String(Number.isFinite(amount) ? amount : 0);
+    return [
+      code,
+      amount < 0 ? javascriptGenerator.ORDER_UNARY_NEGATION : javascriptGenerator.ORDER_ATOMIC,
+    ];
   };
 
   javascriptGenerator.forBlock['table_column_menu'] = function (block) {

@@ -453,6 +453,19 @@ export default {
   table_for_each_row: 'for each row %1 number %2 in %3',
   table_row_value: '%1 of %2',
   table_row_values: 'list from %1',
+  date_value: 'date %1',
+  time_value: 'time %1',
+  datetime_value: 'date and time %1',
+  money_value: '%1 %2',
+  table_column_type_text: 'text',
+  table_column_type_number: 'number',
+  table_column_type_money: 'money',
+  table_column_type_money_in: 'money (%1)',
+  table_column_type_date: 'date',
+  table_column_type_time: 'time',
+  table_column_type_datetime: 'date and time',
+  table_column_type_category: 'category',
+  table_column_type_color: 'color',
   ui_text: 'ui text %1 %2 at x: %3 y: %4\nsize: %5 for %6 seconds color: %7 on: %8 alpha: %9',
   ui_align: 'from',
   ui_button: 'ui button %1 %2 at x: %3 y: %4\nsize: %5 text size: %6 text: %7 on: %8',
@@ -1542,10 +1555,16 @@ export default {
   table_row_value_tooltip: 'The value in this column of a row.',
   table_row_values_tooltip:
     "A list of a row's values in column order. Use it to copy a row into another table or with list blocks.",
+  date_value_tooltip: 'A date, written as year-month-day, like 2026-11-22.',
+  time_value_tooltip: 'A time of day, written as hours:minutes, like 14:30.',
+  datetime_value_tooltip: 'A date and a time of day, like 2026-11-22T14:30.',
+  money_value_tooltip: 'An amount of money. It is stored as a number, rounded to the smallest coin.',
   table_column_menu_tooltip: 'Pick a column of the table, or put a text block here.',
   table_default_column_name: 'Name',
   table_default_value_column_name: 'Value',
   table_default_new_column_name: 'Score',
+  table_default_currency: 'USD',
+  table_start_data_warning: 'Start data row %1: %2',
   table_column_missing_warning: "%1 doesn't have a column called '%2'. Its columns are: %3.",
   table_delete_row_tooltip:
     'Delete one row from the table, or all its rows. Rows count from 0, and the rows after a deleted row move up by one.',
@@ -1661,6 +1680,18 @@ export default {
   table_column_length: 'That column has {given} values but {table} has {count} rows.',
   table_duplicate_column:
     '{table} already has a column called {column}, so the copy is called {renamed}.',
+  table_value_not_number: "Column {column} in {table} is for numbers, so '{value}' doesn't fit.",
+  table_value_not_money: "Column {column} in {table} is for amounts of money, so '{value}' doesn't fit.",
+  table_value_not_date:
+    "Column {column} in {table} is for dates like 2026-11-22, so '{value}' doesn't fit.",
+  table_value_not_time:
+    "Column {column} in {table} is for times like 14:30, so '{value}' doesn't fit.",
+  table_value_not_datetime:
+    "Column {column} in {table} is for dates and times like 2026-11-22T14:30, so '{value}' doesn't fit.",
+  table_value_not_color:
+    "Column {column} in {table} is for colors like #ff8800, so '{value}' doesn't fit.",
+  table_value_not_category:
+    "Column {column} in {table} can be {values}, so '{value}' doesn't fit.",
   table_not_a_row:
     "That isn't a table row. Use the row from a for each row block or a row of block.",
   table_loop_same_variable: 'Use different variables for the row and its number.',
@@ -1686,7 +1717,7 @@ export default {
   table_editor_column_name: 'Column name',
   table_editor_cell_label: '%1, row %2',
   table_editor_keys:
-    'Use the arrow keys to move between cells. Press Enter to change a cell, then Enter to save or Escape to cancel.',
+    "Use the arrow keys to move between cells. Press Enter to change a cell, then Enter to save or Escape to cancel. On a column name, press Enter to change its name and type. In a color cell, Enter opens the color picker.",
   table_editor_no_columns: 'This table has no columns yet. Add a column to start.',
   table_editor_computed_columns:
     'To edit this table here, put text blocks with the column names in the columns list.',
@@ -1697,6 +1728,16 @@ export default {
   table_editor_column_deleted: 'Column %1 deleted',
   table_editor_cell_cleared: 'Cell cleared',
   table_editor_column_moved: 'Column %1 moved',
+  table_column_type_any: 'any',
+  table_editor_field_type: 'Type',
+  table_editor_field_currency: 'Currency',
+  table_editor_field_values: 'Values',
+  table_editor_add_value: 'Add value',
+  table_editor_add_value_option: 'Add…',
+  table_editor_value_label: 'Value',
+  table_editor_remove_value: 'Remove %1',
+  table_editor_value_added: "'%1' added to the values for %2",
+  table_editor_color_label: '%1, row %2, color %3',
   animation_group_not_found: "Couldn't find an animation called {group}.",
   sound_load_failed: "The sound {sound} couldn't be loaded.",
   text_creation_failed: "The 3D text couldn't be made. Try different text or another font.",

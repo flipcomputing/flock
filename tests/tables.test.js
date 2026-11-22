@@ -8,9 +8,12 @@ import {
   defineTableBlocks,
   installTableColumnRenames,
   tableColumnWarningFor,
+  tableStartDataWarningFor,
+  tableValueWarningFor,
 } from '../blocks/tables.js';
 import {
   cellFromText,
+  configureStartColumn,
   deleteStartColumn,
   deleteStartRow,
   insertStartColumn,
@@ -19,6 +22,8 @@ import {
   moveStartRow,
   renameStartColumn,
   setStartCell,
+  setStartColumnType,
+  startColumnSpecs,
   startColumns,
   startData,
   startRows,
@@ -1941,6 +1946,724 @@ export function runTablesTests(flock) {
           expect(content.offsetWidth).to.equal(width - 20);
           expect(resizer.getAttribute('aria-label')).to.match(/arrow keys/);
           key(document.activeElement, 'Escape');
+        } finally {
+          panel.hidden = true;
+        }
+      });
+    });
+
+    describe('typed columns', function () {
+      let workspace;
+      const settle = () => new Promise((resolve) => setTimeout(resolve, 50));
+      const creatorOf = (columns, extraState) => ({
+        ...block('table_create', {
+          fields: { VAR: table('Shop') },
+          inputs: { COLUMNS: list(...columns.map(text)) },
+        }),
+        ...(extraState && { extraState }),
+      });
+      const load = (columns, extraState, ...others) => {
+        Blockly.serialization.workspaces.load(
+          project(creatorOf(columns, extraState), ...others),
+          workspace
+        );
+        workspace.clearUndo();
+        return workspace.getBlocksByType('table_create', false)[0];
+      };
+      const columnTexts = (creator) =>
+        creator
+          .getInputTargetBlock('COLUMNS')
+          .inputList.filter((input) => input.name?.startsWith('ADD'))
+          .map((input) => input.connection.targetBlock().getFieldValue('TEXT'));
+
+      before(function () {
+        if (!Blockly.Blocks.table_create) defineTableBlocks();
+      });
+
+      beforeEach(function () {
+        workspace = new Blockly.Workspace();
+        installTableColumnRenames(workspace);
+      });
+
+      afterEach(function () {
+        workspace.dispose();
+      });
+
+      it('converts values to their column types and keeps values that do not fit', function () {
+        flock.createTable('Shop', ['Code', 'Stock', 'Price', 'Added', 'Size', 'Colour'], [], {
+          Code: { type: 'text' },
+          Stock: { type: 'number' },
+          Price: { type: 'money', currency: 'GBP' },
+          Added: { type: 'date' },
+          Size: { type: 'category', values: ['S', 'M', 'L'] },
+          Colour: { type: 'color' },
+        });
+        flock.addTableRow('Shop', [7, '1,200', '£1,200.505', '2026-1-5', 'm', 'ABC']);
+        expect(flock.getRowValues(flock.getTableRow('Shop', 0))).to.deep.equal([
+          '7',
+          1200,
+          1200.51,
+          '2026-01-05',
+          'M',
+          '#aabbcc',
+        ]);
+        expect(reported).to.deep.equal([]);
+        flock.addTableRow('Shop', ['x', 'lots', 'free', '2026-02-30', 'XL', 'not a colour']);
+        expect(flock.getRowValues(flock.getTableRow('Shop', 1))).to.deep.equal([
+          'x',
+          'lots',
+          'free',
+          '2026-02-30',
+          'XL',
+          'not a colour',
+        ]);
+        expect(keys()).to.deep.equal([
+          'table_value_not_number',
+          'table_value_not_money',
+          'table_value_not_date',
+          'table_value_not_category',
+          'table_value_not_color',
+        ]);
+      });
+
+      it('handles times and dates with times', function () {
+        flock.createTable('Log', ['At', 'When'], [], {
+          At: { type: 'time' },
+          When: { type: 'datetime' },
+        });
+        flock.addTableRow('Log', ['2:30 pm', '2026-1-5 9:05']);
+        flock.addTableRow('Log', ['9:05:30', '2026-11-22T14:30']);
+        flock.addTableRow('Log', ['25:00', '2026-11-22']);
+        expect(flock.getTableColumn('Log', 'At')).to.deep.equal(['14:30', '09:05:30', '25:00']);
+        expect(flock.getTableColumn('Log', 'When')).to.deep.equal([
+          '2026-01-05T09:05',
+          '2026-11-22T14:30',
+          '2026-11-22',
+        ]);
+        expect(keys()).to.deep.equal(['table_value_not_time', 'table_value_not_datetime']);
+        flock.sortTable('Log', 'At', 'ASCENDING');
+        expect(flock.getTableColumn('Log', 'At')).to.deep.equal(['09:05:30', '14:30', '25:00']);
+
+        const time = workspace.newBlock('time_value');
+        time.setFieldValue('2:30pm', 'TIME');
+        expect(time.getFieldValue('TIME')).to.equal('14:30');
+        time.setFieldValue('nonsense', 'TIME');
+        expect(time.getFieldValue('TIME')).to.equal('14:30');
+        const when = workspace.newBlock('datetime_value');
+        when.setFieldValue('2026-1-5 9:05', 'DATETIME');
+        expect(when.getFieldValue('DATETIME')).to.equal('2026-01-05T09:05');
+
+        const blocks = tableFlyoutBlocks('Log', 'table2', 'At', [
+          { name: 'At', type: 'time' },
+          { name: 'When', type: 'datetime' },
+        ]);
+        const adder = blocks.find((item) => item.type === 'table_add_row');
+        expect(
+          Object.values(adder.inputs.VALUES.block.inputs).map((input) => input.shadow.type)
+        ).to.deep.equal(['time_value', 'datetime_value']);
+      });
+
+      it('rounds money to the smallest coin without binary drift', function () {
+        flock.createTable('Shop', ['Price', 'Yen'], [], {
+          Price: { type: 'money', currency: 'GBP' },
+          Yen: { type: 'money', currency: 'JPY' },
+        });
+        flock.addTableRow('Shop', ['1.005', '1.5']);
+        flock.addTableRow('Shop', ['-1.005', 2.4]);
+        flock.addTableRow('Shop', ['£3.456', '¥1,234']);
+        expect(flock.getTableColumn('Shop', 'Price')).to.deep.equal([1.01, -1.01, 3.46]);
+        expect(flock.getTableColumn('Shop', 'Yen')).to.deep.equal([2, 2, 1234]);
+        const money = workspace.newBlock('money_value');
+        money.setFieldValue('GBP', 'CURRENCY');
+        money.setFieldValue('1.005', 'AMOUNT');
+        expect(money.getFieldValue('AMOUNT')).to.equal('1.01');
+        money.setFieldValue('USD', 'CURRENCY');
+        expect(money.getFieldValue('AMOUNT')).to.equal('1.01');
+        expect(money.getField('CURRENCY').getOptions().map(([label]) => label)).to.deep.equal([
+          '$',
+          '£',
+          '€',
+        ]);
+      });
+
+      it('keeps column types with their columns when names repeat or collide', function () {
+        const creator = load(['A', 'A'], {
+          columns: ['A', 'A 2'],
+          rows: [],
+          types: { A: { type: 'number' }, 'A 2': { type: 'date' } },
+        });
+        const types = (owner) =>
+          startColumnSpecs(owner).map((spec) => `${spec.name}:${spec.type}`);
+        moveStartColumn(creator, 0, 1);
+        expect(types(creator)).to.deep.equal(['A:date', 'A 2:number']);
+        deleteStartColumn(creator, 0);
+        expect(types(creator)).to.deep.equal(['A:number']);
+
+        const other = load(['A', 'B'], {
+          columns: ['A', 'B'],
+          rows: [],
+          types: { A: { type: 'number' }, B: { type: 'date' } },
+        });
+        renameStartColumn(other, 0, 'B');
+        expect(types(other)).to.deep.equal(['B:number', 'B 2:date']);
+      });
+
+      it('keeps a type for a column called __proto__', function () {
+        const creator = load(['__proto__'], { columns: ['__proto__'], rows: [] });
+        setStartColumnType(creator, 0, 'number');
+        expect(Object.keys(startData(creator).types)).to.deep.equal(['__proto__']);
+        const json = Blockly.serialization.workspaces.save(workspace);
+        workspace.clear();
+        Blockly.serialization.workspaces.load(json, workspace);
+        const reloaded = workspace.getBlocksByType('table_create', false)[0];
+        expect(startColumnSpecs(reloaded)[0]).to.deep.equal({ name: '__proto__', type: 'number' });
+        const code = compileFlockProject(json);
+        expect(code, code).to.include('[["__proto__",{"type":"number"}]]');
+        flock.createTable('Odd', ['__proto__'], [['7']], [['__proto__', { type: 'number' }]]);
+        expect(flock.getTableValue('Odd', 0, '__proto__')).to.equal(7);
+      });
+
+      it('skips row position checks when a column name is computed', function () {
+        load(
+          [],
+          { columns: [], rows: [], types: { Height: { type: 'number' } } },
+          block('table_add_row', {
+            fields: { TABLE: table('Shop') },
+            inputs: { VALUES: list(text('Alice'), num(5)) },
+          })
+        );
+        const creator = workspace.getBlocksByType('table_create', false)[0];
+        const columns = Blockly.serialization.blocks.append(
+          {
+            type: 'lists_create_with',
+            extraState: { itemCount: 2 },
+            inputs: {
+              ADD0: { block: { type: 'variables_get', fields: { VAR: { name: 'first' } } } },
+              ADD1: { shadow: { type: 'text', fields: { TEXT: 'Height' } } },
+            },
+          },
+          workspace
+        );
+        creator.getInput('COLUMNS').connection.connect(columns.outputConnection);
+        const adder = workspace.getBlocksByType('table_add_row', false)[0];
+        expect(tableValueWarningFor(adder)).to.equal(null);
+      });
+
+      it('drops column edits and colour picks meant for another table or row', function () {
+        Blockly.serialization.workspaces.load(
+          project(
+            chain(
+              creatorOf(['Colour'], {
+                columns: ['Colour'],
+                rows: [['#ff0000'], ['#0000ff']],
+                types: { Colour: { type: 'color' } },
+              }),
+              {
+                ...block('table_create', {
+                  fields: { VAR: table('Other') },
+                  inputs: { COLUMNS: list(text('Colour')) },
+                }),
+                extraState: {
+                  columns: ['Colour'],
+                  rows: [['#ffffff']],
+                  types: { Colour: { type: 'color' } },
+                },
+              }
+            )
+          ),
+          workspace
+        );
+        const [shop, other] = workspace.getBlocksByType('table_create', false);
+        const original = window.flockColorPicker;
+        const picker = {
+          isOpen: false,
+          open(start, { onConfirm }) {
+            this.isOpen = true;
+            this._confirmOverride = onConfirm;
+            this.confirm = onConfirm;
+          },
+          close() {
+            this.isOpen = false;
+            this._confirmOverride = null;
+          },
+        };
+        window.flockColorPicker = picker;
+        const key = (keyName) =>
+          document.activeElement.dispatchEvent(
+            new KeyboardEvent('keydown', { key: keyName, bubbles: true })
+          );
+        try {
+          openTableEditor(shop);
+          key('Enter');
+          expect(picker.isOpen).to.equal(true);
+          openTableEditor(other);
+          expect(picker.isOpen).to.equal(false);
+          picker.confirm('#00ff00');
+          expect(startRows(shop)).to.deep.equal([['#ff0000'], ['#0000ff']]);
+          expect(startRows(other)).to.deep.equal([['#ffffff']]);
+
+          openTableEditor(shop);
+          key('Enter');
+          insertStartRow(shop, 0);
+          picker.confirm('#00ff00');
+          expect(startRows(shop)).to.deep.equal([[''], ['#ff0000'], ['#0000ff']]);
+
+          key('Enter');
+          picker.confirm('#00ff00');
+          expect(startRows(shop)[0]).to.deep.equal(['#00ff00']);
+
+          key('ArrowUp');
+          key('Enter');
+          expect(document.querySelector('th.table-editor-editing')).to.not.equal(null);
+          openTableEditor(other);
+          expect(document.querySelector('th.table-editor-editing')).to.equal(null);
+          expect(startColumnSpecs(other)).to.deep.equal([{ name: 'Colour', type: 'color' }]);
+        } finally {
+          window.flockColorPicker = original;
+          document.querySelector('.table-editor').hidden = true;
+        }
+      });
+
+      it('does not guess row positions when creators of a table disagree', function () {
+        const second = {
+          ...block('table_create', {
+            fields: { VAR: table('Shop') },
+            inputs: { COLUMNS: list(text('B')) },
+          }),
+          extraState: { columns: ['B'], rows: [], types: { B: { type: 'date' } } },
+        };
+        load(
+          ['A'],
+          { columns: ['A'], rows: [], types: { A: { type: 'number' } } },
+          chain(
+            second,
+            block('table_add_row', {
+              fields: { TABLE: table('Shop') },
+              inputs: { VALUES: list(text('2026-01-01')) },
+            }),
+            block('table_set_value', {
+              fields: { TABLE: table('Shop') },
+              inputs: { ROW: num(0), COLUMN: text('B'), VALUE: text('soon') },
+            })
+          )
+        );
+        const adder = workspace.getBlocksByType('table_add_row', false)[0];
+        expect(tableValueWarningFor(adder)).to.equal(null);
+        const setter = workspace.getBlocksByType('table_set_value', false)[0];
+        expect(tableValueWarningFor(setter)).to.match(/dates.*soon/);
+      });
+
+      it('ignores a column type when creators give the same name different types', function () {
+        const second = {
+          ...block('table_create', {
+            fields: { VAR: table('Shop') },
+            inputs: { COLUMNS: list(text('A')) },
+          }),
+          extraState: { columns: ['A'], rows: [], types: { A: { type: 'date' } } },
+        };
+        load(
+          ['A'],
+          { columns: ['A'], rows: [], types: { A: { type: 'number' } } },
+          chain(
+            second,
+            block('table_set_value', {
+              fields: { TABLE: table('Shop') },
+              inputs: { ROW: num(0), COLUMN: text('A'), VALUE: text('soon') },
+            })
+          )
+        );
+        const setter = workspace.getBlocksByType('table_set_value', false)[0];
+        expect(tableValueWarningFor(setter)).to.equal(null);
+      });
+
+      it('closes the column editor when undo moves another column into its place', async function () {
+        const creator = load(['A', 'C'], {
+          columns: ['A', 'C'],
+          rows: [],
+          types: { C: { type: 'date' } },
+        });
+        insertStartColumn(creator, 1);
+        await settle();
+        openTableEditor(creator);
+        const panel = document.querySelector('.table-editor');
+        const key = (keyName) =>
+          document.activeElement.dispatchEvent(
+            new KeyboardEvent('keydown', { key: keyName, bubbles: true })
+          );
+        try {
+          key('ArrowRight');
+          key('ArrowUp');
+          key('Enter');
+          expect(panel.querySelector('th.table-editor-editing')).to.not.equal(null);
+          workspace.undo(false);
+          await settle();
+          expect(startColumns(creator)).to.deep.equal(['A', 'C']);
+          expect(panel.querySelector('th.table-editor-editing')).to.equal(null);
+          expect(startColumnSpecs(creator)[1]).to.deep.equal({ name: 'C', type: 'date' });
+        } finally {
+          panel.hidden = true;
+        }
+      });
+
+      it('checks values set by code', function () {
+        flock.createTable('Shop', ['Name', 'Stock'], [['Apple', '3']], { Stock: { type: 'number' } });
+        expect(flock.getTableValue('Shop', 0, 'Stock')).to.equal(3);
+        flock.setTableValue('Shop', 0, 'Stock', 'many');
+        expect(flock.getTableValue('Shop', 0, 'Stock')).to.equal('many');
+        expect(keys()).to.deep.equal(['table_value_not_number']);
+        flock.setTableColumn('Shop', 'Stock', ['5']);
+        expect(flock.getTableColumn('Shop', 'Stock')).to.deep.equal([5]);
+      });
+
+      it('sorts by the column type', function () {
+        flock.createTable('Shop', ['Size', 'Code', 'Colour'], [], {
+          Size: { type: 'category', values: ['S', 'M', 'L'] },
+          Code: { type: 'text' },
+          Colour: { type: 'color' },
+        });
+        flock.addTableRow('Shop', ['L', '10', '#0000ff']);
+        flock.addTableRow('Shop', ['S', '9', '#ff0000']);
+        flock.addTableRow('Shop', ['M', 'b', '#00ff00']);
+        const column = (name) => flock.getTableColumn('Shop', name);
+        flock.sortTable('Shop', 'Size', 'ASCENDING');
+        expect(column('Size')).to.deep.equal(['S', 'M', 'L']);
+        flock.sortTable('Shop', 'Code', 'ASCENDING');
+        expect(column('Code')).to.deep.equal(['9', '10', 'b']);
+        flock.sortTable('Shop', 'Colour', 'ASCENDING');
+        expect(column('Colour')).to.deep.equal(['#ff0000', '#00ff00', '#0000ff']);
+      });
+
+      it('generates column types from the extra state, dates and money', function () {
+        const types = { Price: { type: 'money', currency: 'USD' }, When: { type: 'date' } };
+        const code = compileFlockProject(
+          project(
+            chain(
+              creatorOf(['Price', 'When'], { columns: ['Price', 'When'], rows: [], types }),
+              block('table_add_row', {
+                fields: { TABLE: table('Shop') },
+                inputs: {
+                  VALUES: list(
+                    value({ type: 'money_value', fields: { CURRENCY: 'USD', AMOUNT: '2.5' } }),
+                    value({ type: 'date_value', fields: { DATE: '2026-11-22' } })
+                  ),
+                },
+              })
+            )
+          )
+        );
+        expect(code, code).to.include(
+          `Shop = createTable("Shop", ['Price', 'When'], [], ${JSON.stringify(Object.entries(types))});`
+        );
+        expect(code, code).to.include('addTableRow(Shop, [2.5, "2026-11-22"]);');
+        expect(() => flock.prepareUserCode(code)).not.to.throw();
+      });
+
+      it('changes a column type in the extra state and undoes it', async function () {
+        const creator = load(['Name', 'Height'], {
+          columns: ['Name', 'Height'],
+          rows: [
+            ['Burj', '828'],
+            ['Tower', 'tall'],
+          ],
+        });
+        setStartColumnType(creator, 1, 'number');
+        expect(columnTexts(creator)).to.deep.equal(['Name', 'Height']);
+        expect(startColumnSpecs(creator)[1]).to.deep.equal({ name: 'Height', type: 'number' });
+        expect(startRows(creator)).to.deep.equal([
+          ['Burj', 828],
+          ['Tower', 'tall'],
+        ]);
+        expect(tableStartDataWarningFor(creator)).to.match(/row 1.*tall/);
+        renameStartColumn(creator, 1, 'Tall');
+        expect(startColumnSpecs(creator)[1]).to.deep.equal({ name: 'Tall', type: 'number' });
+        creator
+          .getInputTargetBlock('COLUMNS')
+          .getInputTargetBlock('ADD1')
+          .setFieldValue('Big', 'TEXT');
+        await settle();
+        expect(startColumnSpecs(creator)[1]).to.deep.equal({ name: 'Big', type: 'number' });
+        await settle();
+        workspace.undo(false);
+        await settle();
+        workspace.undo(false);
+        await settle();
+        workspace.undo(false);
+        await settle();
+        expect(startColumnSpecs(creator)[1]).to.deep.equal({ name: 'Height', type: null });
+        expect(startRows(creator)[0]).to.deep.equal(['Burj', '828']);
+      });
+
+      it('makes category values from the data and adds new ones', function () {
+        const creator = load(['Size'], { columns: ['Size'], rows: [['S'], ['M'], ['S']] });
+        setStartColumnType(creator, 0, 'category');
+        expect(startColumnSpecs(creator)[0].values).to.deep.equal(['S', 'M']);
+        expect(setStartCell(creator, 0, 0, 'l')).to.deep.equal({ added: 'l' });
+        expect(setStartCell(creator, 1, 0, 'm')).to.deep.equal({});
+        expect(startColumnSpecs(creator)[0].values).to.deep.equal(['S', 'M', 'l']);
+        expect(startRows(creator)).to.deep.equal([['l'], ['M'], ['S']]);
+        const json = Blockly.serialization.workspaces.save(workspace);
+        workspace.clear();
+        Blockly.serialization.workspaces.load(json, workspace);
+        const reloaded = workspace.getBlocksByType('table_create', false)[0];
+        expect(startColumnSpecs(reloaded)[0].values).to.deep.equal(['S', 'M', 'l']);
+      });
+
+      it('renames, removes and adds category values from the settings', function () {
+        const creator = load(['Size'], {
+          columns: ['Size'],
+          rows: [['S'], ['M']],
+          types: { Size: { type: 'category', values: ['S', 'M'] } },
+        });
+        configureStartColumn(creator, 0, {
+          type: 'category',
+          values: ['Small', 'Large'],
+          renames: new Map([['S', 'Small']]),
+        });
+        expect(startColumnSpecs(creator)[0].values).to.deep.equal(['Small', 'Large']);
+        expect(startRows(creator)).to.deep.equal([['Small'], ['M']]);
+        expect(tableStartDataWarningFor(creator)).to.match(/'M'/);
+        expect(
+          configureStartColumn(creator, 0, { type: 'category', values: ['Small', 'Large'] })
+        ).to.equal(null);
+        configureStartColumn(creator, 0, { name: 'Sizes', type: 'money', currency: 'JPY' });
+        expect(columnTexts(creator)).to.deep.equal(['Sizes']);
+        expect(startColumnSpecs(creator)[0]).to.deep.equal({
+          name: 'Sizes',
+          type: 'money',
+          currency: 'JPY',
+        });
+      });
+
+      it('forgets the type of a deleted column', function () {
+        const creator = load(['Name', 'Height'], {
+          columns: ['Name', 'Height'],
+          rows: [],
+          types: { Height: { type: 'number' } },
+        });
+        deleteStartColumn(creator, 1);
+        expect(startData(creator).types).to.deep.equal({});
+      });
+
+      it('warns when a value block does not fit its column', function () {
+        load(
+          ['Height', 'Colour'],
+          {
+            columns: ['Height', 'Colour'],
+            rows: [],
+            types: { Height: { type: 'number' }, Colour: { type: 'color' } },
+          },
+          block('table_add_row', {
+            fields: { TABLE: table('Shop') },
+            inputs: { VALUES: list(text('tall'), text('red')) },
+          })
+        );
+        const adder = workspace.getBlocksByType('table_add_row', false)[0];
+        expect(tableValueWarningFor(adder)).to.match(/Height.*numbers.*tall/);
+        adder.getInputTargetBlock('VALUES').getInputTargetBlock('ADD0').setFieldValue('5', 'TEXT');
+        expect(tableValueWarningFor(adder)).to.equal(null);
+      });
+
+      it('rejects bad dates and keeps money to the smallest coin in the blocks', function () {
+        const date = workspace.newBlock('date_value');
+        date.setFieldValue('2026-2-3', 'DATE');
+        expect(date.getFieldValue('DATE')).to.equal('2026-02-03');
+        date.setFieldValue('2026-02-30', 'DATE');
+        expect(date.getFieldValue('DATE')).to.equal('2026-02-03');
+        const money = workspace.newBlock('money_value');
+        money.setFieldValue('GBP', 'CURRENCY');
+        money.setFieldValue('£3.456', 'AMOUNT');
+        expect(money.getFieldValue('AMOUNT')).to.equal('3.46');
+      });
+
+      it('matches add row value blocks to the column types in the toolbox', function () {
+        const blocks = tableFlyoutBlocks('Shop', 'table2', 'Price', [
+          { name: 'Price', type: 'money', currency: 'EUR' },
+          { name: 'When', type: 'date' },
+          { name: 'Colour', type: 'color' },
+        ]);
+        const adder = blocks.find((item) => item.type === 'table_add_row');
+        const types = Object.values(adder.inputs.VALUES.block.inputs).map(
+          (input) => input.shadow.type
+        );
+        expect(types).to.deep.equal(['money_value', 'date_value', 'colour']);
+        const setter = blocks.find((item) => item.type === 'table_set_value');
+        expect(setter.inputs.VALUE.shadow.type).to.equal('money_value');
+      });
+
+      it('marks cells that do not fit with a warning triangle and says why', function () {
+        const creator = load(['Height'], {
+          columns: ['Height'],
+          rows: [[5], ['tall']],
+          types: { Height: { type: 'number' } },
+        });
+        openTableEditor(creator);
+        const panel = document.querySelector('.table-editor');
+        try {
+          const bad = panel.querySelector('td[data-row="1"][data-column="0"]');
+          expect(bad.querySelector('.table-editor-warning-icon')).to.not.equal(null);
+          expect(bad.getAttribute('aria-description')).to.match(/numbers.*tall/);
+          expect(bad.title).to.equal('');
+          const problem = panel.querySelector('.table-editor-problem');
+          expect(problem.hidden).to.equal(true);
+          document.activeElement.dispatchEvent(
+            new KeyboardEvent('keydown', { key: 'ArrowDown', bubbles: true })
+          );
+          expect(problem.hidden).to.equal(false);
+          expect(problem.textContent).to.match(/numbers.*tall/);
+          expect(problem.querySelector('.table-editor-warning-icon')).to.not.equal(null);
+        } finally {
+          panel.hidden = true;
+        }
+      });
+
+      it('leaves removed category values out of the dropdown', function () {
+        const creator = load(['Size'], {
+          columns: ['Size'],
+          rows: [['L']],
+          types: { Size: { type: 'category', values: ['S', 'M'] } },
+        });
+        openTableEditor(creator);
+        const panel = document.querySelector('.table-editor');
+        const key = (target, keyName) =>
+          target.dispatchEvent(new KeyboardEvent('keydown', { key: keyName, bubbles: true }));
+        try {
+          key(document.activeElement, 'Enter');
+          const select = panel.querySelector('select.table-editor-input');
+          expect([...select.options].map((option) => option.value)).to.not.include('L');
+          expect(select.selectedIndex).to.equal(-1);
+          key(select, 'Enter');
+          expect(startRows(creator)).to.deep.equal([['L']]);
+          key(document.activeElement, 'ArrowUp');
+          key(document.activeElement, 'ArrowDown');
+          key(document.activeElement, 'Enter');
+          panel.querySelector('select.table-editor-input').blur();
+          expect(startRows(creator)).to.deep.equal([['L']]);
+        } finally {
+          panel.hidden = true;
+        }
+      });
+
+      it('picks category values from a dropdown and adds new ones', async function () {
+        const creator = load(['Size'], {
+          columns: ['Size'],
+          rows: [['S']],
+          types: { Size: { type: 'category', values: ['S', 'M'] } },
+        });
+        openTableEditor(creator);
+        const panel = document.querySelector('.table-editor');
+        const key = (target, keyName) =>
+          target.dispatchEvent(new KeyboardEvent('keydown', { key: keyName, bubbles: true }));
+        try {
+          key(document.activeElement, 'Enter');
+          const select = panel.querySelector('select.table-editor-input');
+          const options = [...select.options].map((option) => option.textContent);
+          expect(options).to.deep.equal(['S', 'M', '', 'Add…']);
+          select.value = 'M';
+          select.dispatchEvent(new Event('change'));
+          expect(startRows(creator)).to.deep.equal([['M']]);
+          key(document.activeElement, 'Enter');
+          const again = panel.querySelector('select.table-editor-input');
+          again.value = again.options[again.options.length - 1].value;
+          again.dispatchEvent(new Event('change'));
+          const input = panel.querySelector('input.table-editor-input');
+          expect(input).to.not.equal(null);
+          input.value = 'XL';
+          key(input, 'Enter');
+          expect(startRows(creator)).to.deep.equal([['XL']]);
+          expect(startColumnSpecs(creator)[0].values).to.deep.equal(['S', 'M', 'XL']);
+          const cell = panel.querySelector('td[data-row="0"][data-column="0"]');
+          cell.dispatchEvent(new PointerEvent('pointerdown', { bubbles: true, button: 0 }));
+          expect(panel.querySelector('select.table-editor-input')).to.equal(null);
+          panel
+            .querySelector('td[data-row="0"][data-column="0"]')
+            .dispatchEvent(new PointerEvent('pointerup', { bubbles: true, button: 0 }));
+          await settle();
+          expect(panel.querySelector('select.table-editor-input')).to.not.equal(null);
+        } finally {
+          panel.hidden = true;
+        }
+      });
+
+      it('shows colours, refuses a bad number and edits column settings', async function () {
+        const creator = load(['Colour', 'Height'], {
+          columns: ['Colour', 'Height'],
+          rows: [['#ff0000', 5]],
+          types: { Colour: { type: 'color' }, Height: { type: 'number' } },
+        });
+        openTableEditor(creator);
+        const panel = document.querySelector('.table-editor');
+        const key = (target, keyName) =>
+          target.dispatchEvent(new KeyboardEvent('keydown', { key: keyName, bubbles: true }));
+        try {
+          const colourCell = panel.querySelector('td[data-row="0"][data-column="0"]');
+          expect(colourCell.style.background).to.include('rgb(255, 0, 0)');
+          expect(colourCell.textContent).to.equal('#ff0000');
+          const heading = panel.querySelector('th[data-row="-1"][data-column="1"]');
+          expect(heading.getAttribute('aria-description')).to.equal('number');
+          key(document.activeElement, 'ArrowRight');
+          key(document.activeElement, 'Enter');
+          const input = panel.querySelector('.table-editor-input');
+          input.value = 'abc';
+          key(input, 'Enter');
+          expect(panel.querySelector('.table-editor-input')).to.equal(input);
+          expect(input.getAttribute('aria-invalid')).to.equal('true');
+          expect(startRows(creator)[0][1]).to.equal(5);
+          key(input, 'Escape');
+          key(document.activeElement, 'ArrowUp');
+          key(document.activeElement, 'Enter');
+          const nameInput = panel.querySelector('th.table-editor-editing input');
+          const editor = panel.querySelector('.table-editor-config-cell .table-editor-header-editor');
+          const [type, currency] = editor.querySelectorAll('select');
+          expect(panel.querySelectorAll('thead tr').length).to.equal(3);
+          expect(document.activeElement).to.equal(nameInput);
+          expect(currency.hidden).to.equal(true);
+          type.value = 'MONEY';
+          type.dispatchEvent(new Event('change'));
+          expect(currency.hidden).to.equal(false);
+          currency.value = 'EUR';
+          currency.dispatchEvent(new Event('change'));
+          expect(panel.querySelector('td[data-row="0"][data-column="1"]').textContent).to.equal(
+            '€5.00'
+          );
+          expect([...currency.options].map((option) => option.textContent)).to.deep.equal([
+            '$',
+            '£',
+            '€',
+          ]);
+          expect(startColumnSpecs(creator)[1]).to.deep.equal({
+            name: 'Height',
+            type: 'money',
+            currency: 'EUR',
+          });
+          expect(startRows(creator)[0][1]).to.equal(5);
+          expect(panel.querySelector('th.table-editor-editing')).to.not.equal(null);
+          type.value = 'CATEGORY';
+          type.dispatchEvent(new Event('change'));
+          const values = [...editor.querySelectorAll('li input')].map((input) => input.value);
+          expect(values).to.deep.equal(['5']);
+          nameInput.value = 'Cost';
+          key(nameInput, 'Enter');
+          expect(startColumns(creator)).to.deep.equal(['Colour', 'Cost']);
+          expect(startColumnSpecs(creator)[1]).to.deep.equal({
+            name: 'Cost',
+            type: 'category',
+            values: ['5'],
+          });
+          expect(panel.querySelector('th.table-editor-editing')).to.equal(null);
+          expect(panel.querySelectorAll('thead tr').length).to.equal(2);
+          expect(document.activeElement.dataset.row).to.equal('0');
+          const heading2 = panel.querySelector('th[data-row="-1"][data-column="1"]');
+          heading2.dispatchEvent(new PointerEvent('pointerdown', { bubbles: true, button: 0 }));
+          panel
+            .querySelector('th[data-row="-1"][data-column="1"]')
+            .dispatchEvent(new PointerEvent('pointerup', { bubbles: true, button: 0 }));
+          await settle();
+          expect(panel.querySelector('th.table-editor-editing')).to.not.equal(null);
+          key(document.activeElement, 'Escape');
+          expect(panel.querySelector('th.table-editor-editing')).to.equal(null);
+          expect(panel.hidden).to.equal(false);
+          key(document.activeElement, 'Escape');
+          await settle();
         } finally {
           panel.hidden = true;
         }

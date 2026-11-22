@@ -48,7 +48,8 @@ import {
   defineTableBlocks,
   installTableColumnRenames,
   installTableColumnWarnings,
-  tableColumns,
+  installTableValueWarnings,
+  tableColumnInfo,
 } from '../blocks/tables.js';
 import { defineUnknownBlock } from '../blocks/unknownBlock.js';
 import { localVariableIds, unavailableVariableUses } from '../blocks/variableScope.js';
@@ -665,7 +666,13 @@ export function tableFlyoutItems(ws) {
   const fresh = nextFreeVariableName(ws, 'table');
   const newest = ws.getBlocksByType('table_create', false).at(-1)?.getField('VAR')?.getText();
   const table = newest || fresh;
-  return tableFlyoutBlocks(table, fresh, tableColumns(ws, table)[0]);
+  const { columns, specs } = tableColumnInfo(ws, table);
+  return tableFlyoutBlocks(
+    table,
+    fresh,
+    columns[0],
+    columns.map((name) => specs.get(name))
+  );
 }
 
 export function variableFlyoutItems(ws) {
@@ -2644,6 +2651,7 @@ export function createBlocklyWorkspace() {
   window.flockRefreshAnimationWarnings = installAnimationWarnings(workspace);
   installTableColumnRenames(workspace);
   installTableColumnWarnings(workspace);
+  installTableValueWarnings(workspace);
 
   (function wireToolboxSearchArrowDown() {
     const host = workspace.getInjectionDiv?.() || document;
