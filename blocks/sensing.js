@@ -552,6 +552,45 @@ export function defineSensingBlocks() {
     },
   };
 
+  Blockly.Blocks['now'] = {
+    init: function () {
+      this.jsonInit({
+        type: 'now',
+        message0: translate('now'),
+        output: 'String',
+        colour: categoryColours['Sensing'],
+        tooltip: getTooltip('now'),
+      });
+      this.setHelpUrl(getHelpUrlFor(this.type));
+      this.setStyle('sensing_blocks');
+    },
+  };
+
+  Blockly.Blocks['date_part'] = {
+    init: function () {
+      this.jsonInit({
+        type: 'date_part',
+        message0: translate('date_part'),
+        args0: [
+          {
+            type: 'field_dropdown',
+            name: 'PART',
+            options: ['year', 'month', 'day', 'day_of_week', 'hour', 'minute', 'second'].map(
+              (part) => getDropdownOption(part)
+            ),
+          },
+          { type: 'input_value', name: 'DATE', check: 'String' },
+        ],
+        output: 'Number',
+        colour: categoryColours['Sensing'],
+        inputsInline: true,
+        tooltip: getTooltip('date_part'),
+      });
+      this.setHelpUrl(getHelpUrlFor(this.type));
+      this.setStyle('sensing_blocks');
+    },
+  };
+
   Blockly.Blocks['ground_level'] = {
     init: function () {
       this.jsonInit({

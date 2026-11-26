@@ -317,6 +317,15 @@ export default {
   seconds: 'seconds',
   milliseconds: 'milliseconds',
   minutes: 'minutes',
+  now: 'now',
+  date_part: '%1 of %2',
+  year_option: 'year',
+  month_option: 'month',
+  day_option: 'day',
+  day_of_week_option: 'day of week',
+  hour_option: 'hour',
+  minute_option: 'minute',
+  second_option: 'second',
   ground_level: 'ground level',
   distance_to: 'distance from %1 to %2',
   touching_surface: 'is %1 touching surface',
@@ -725,6 +734,9 @@ export default {
   meshes_touching_tooltip: 'Return true if the two selected objects are touching.',
   time_tooltip:
     "Return the elapsed time. Pauses while the tab is hidden, so it's best for game timers and countdowns.",
+  now_tooltip: 'Return the current date and time from the device clock, like 2026-11-22 14:30:05.',
+  date_part_tooltip:
+    'Return part of a date or time as a number, like the hour of now. Day of week is 1 for Monday to 7 for Sunday.',
   ground_level_tooltip: 'Return the ground height at the current x/z position.',
   distance_to_tooltip: 'Calculate the distance between two objects.',
   touching_surface_tooltip: 'Return true if the object is touching a surface.',
@@ -1557,7 +1569,7 @@ export default {
     "A list of a row's values in column order. Use it to copy a row into another table or with list blocks.",
   date_value_tooltip: 'A date, written as year-month-day, like 2026-11-22.',
   time_value_tooltip: 'A time of day, written as hours:minutes, like 14:30.',
-  datetime_value_tooltip: 'A date and a time of day, like 2026-11-22T14:30.',
+  datetime_value_tooltip: 'A date and a time of day, like 2026-11-22 14:30.',
   money_value_tooltip: 'An amount of money. It is stored as a number, rounded to the smallest coin.',
   table_column_menu_tooltip: 'Pick a column of the table, or put a text block here.',
   table_default_column_name: 'Name',
@@ -1687,7 +1699,11 @@ export default {
   table_value_not_time:
     "Column {column} in {table} is for times like 14:30, so '{value}' doesn't fit.",
   table_value_not_datetime:
-    "Column {column} in {table} is for dates and times like 2026-11-22T14:30, so '{value}' doesn't fit.",
+    "Column {column} in {table} is for dates and times like 2026-11-22 14:30, so '{value}' doesn't fit.",
+  date_part_not_date:
+    "'{value}' isn't a date or time. Use one like 2026-11-22, 14:30 or 2026-11-22 14:30.",
+  date_part_no_date:
+    "'{value}' is a time with no date, so it has no year, month, day or day of week.",
   table_value_not_color:
     "Column {column} in {table} is for colors like #ff8800, so '{value}' doesn't fit.",
   table_value_not_category:

@@ -2036,8 +2036,8 @@ export function runTablesTests(flock) {
         flock.addTableRow('Log', ['25:00', '2026-11-22']);
         expect(flock.getTableColumn('Log', 'At')).to.deep.equal(['14:30', '09:05:30', '25:00']);
         expect(flock.getTableColumn('Log', 'When')).to.deep.equal([
-          '2026-01-05T09:05',
-          '2026-11-22T14:30',
+          '2026-01-05 09:05',
+          '2026-11-22 14:30',
           '2026-11-22',
         ]);
         expect(keys()).to.deep.equal(['table_value_not_time', 'table_value_not_datetime']);
@@ -2051,7 +2051,9 @@ export function runTablesTests(flock) {
         expect(time.getFieldValue('TIME')).to.equal('14:30');
         const when = workspace.newBlock('datetime_value');
         when.setFieldValue('2026-1-5 9:05', 'DATETIME');
-        expect(when.getFieldValue('DATETIME')).to.equal('2026-01-05T09:05');
+        expect(when.getFieldValue('DATETIME')).to.equal('2026-01-05 09:05');
+        when.setFieldValue('2026-11-22T14:30', 'DATETIME');
+        expect(when.getFieldValue('DATETIME')).to.equal('2026-11-22 14:30');
 
         const blocks = tableFlyoutBlocks('Log', 'table2', 'At', [
           { name: 'At', type: 'time' },

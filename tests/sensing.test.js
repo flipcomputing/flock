@@ -52,6 +52,70 @@ export function runSensingTests(flock) {
       });
     });
 
+    describe('currentDateTime and datePart', function () {
+      let RealDate, errors, realReport;
+
+      beforeEach(function () {
+        RealDate = globalThis.Date;
+        errors = [];
+        realReport = flock.reportBlockError;
+        flock.reportBlockError = (details) => errors.push(details);
+      });
+
+      afterEach(function () {
+        globalThis.Date = RealDate;
+        flock.reportBlockError = realReport;
+      });
+
+      it('gives the local date and time with seconds', function () {
+        const fixed = new RealDate(2026, 0, 5, 7, 3, 9);
+        globalThis.Date = class extends RealDate {
+          constructor(...args) {
+            super(...(args.length ? args : [fixed.getTime()]));
+          }
+        };
+        expect(flock.currentDateTime()).to.equal('2026-01-05 07:03:09');
+      });
+
+      it('reads each part of a date and time', function () {
+        const value = '2026-11-22 14:30:05';
+        const parts = ['year', 'month', 'day', 'day_of_week', 'hour', 'minute', 'second'];
+        expect(parts.map((part) => flock.datePart(part, value))).to.deep.equal([
+          2026, 11, 22, 7, 14, 30, 5,
+        ]);
+      });
+
+      it('numbers days of the week from Monday as 1', function () {
+        expect(flock.datePart('day_of_week', '2026-11-23')).to.equal(1);
+        expect(flock.datePart('day_of_week', '2026-11-28')).to.equal(6);
+      });
+
+      it('reads dates, times and table-style values', function () {
+        expect(flock.datePart('month', '2026-02-01')).to.equal(2);
+        expect(flock.datePart('hour', '2026-02-01')).to.equal(0);
+        expect(flock.datePart('minute', '09:45')).to.equal(45);
+        expect(flock.datePart('second', '2026-11-22T14:30')).to.equal(0);
+        expect(flock.datePart('hour', flock.currentDateTime())).to.equal(new RealDate().getHours());
+        expect(errors).to.be.empty;
+      });
+
+      it('reports values that are not dates or times and returns 0', function () {
+        expect(flock.datePart('year', 'banana')).to.equal(0);
+        expect(flock.datePart('hour', 42)).to.equal(0);
+        expect(flock.datePart('day', '2026-02-30')).to.equal(0);
+        expect(errors.map((e) => e.key)).to.deep.equal([
+          'date_part_not_date',
+          'date_part_not_date',
+          'date_part_not_date',
+        ]);
+      });
+
+      it('reports asking a time for a date part', function () {
+        expect(flock.datePart('year', '14:30')).to.equal(0);
+        expect(errors.map((e) => e.key)).to.deep.equal(['date_part_no_date']);
+      });
+    });
+
     describe('getTime', function () {
       it('should return a positive number of milliseconds', function () {
         const t = flock.getTime('milliseconds');

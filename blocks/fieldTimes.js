@@ -11,7 +11,7 @@ function todayText() {
 }
 
 const asUtc = (time) => new Date(`1970-01-01T${time}Z`);
-const dateTimeAsUtc = (value) => new Date(`${value}Z`);
+const dateTimeAsUtc = (value) => new Date(`${value.replace(' ', 'T')}Z`);
 
 export function formatTime(value, style = 'short') {
   return new Intl.DateTimeFormat(undefined, { timeStyle: style, timeZone: 'UTC' }).format(
@@ -20,7 +20,7 @@ export function formatTime(value, style = 'short') {
 }
 
 export function formatDateTime(value) {
-  const [date, time] = value.split('T');
+  const [date, time] = (normaliseDateTime(value) ?? value).split(' ');
   return `${date} ${formatTime(time)}`;
 }
 
@@ -102,9 +102,13 @@ class FieldDateTime extends FieldDate {
     input.value = input.defaultValue;
     return input;
   }
+
+  getEditorText_(value) {
+    return String(value ?? '').replace(' ', 'T');
+  }
 }
 
-FieldDateTime.prototype.DEFAULT_VALUE = `${todayText()}T12:00`;
+FieldDateTime.prototype.DEFAULT_VALUE = `${todayText()} 12:00`;
 
 Blockly.registry.register(Blockly.registry.Type.FIELD, 'field_date', FieldIsoDate, true);
 Blockly.fieldRegistry.register('field_time', FieldTime);

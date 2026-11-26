@@ -278,6 +278,15 @@ export default {
   seconds: 'sekunder',
   milliseconds: 'millisekunder',
   minutes: 'minuter',
+  now: 'nu', // ai
+  date_part: '%1 av %2', // ai
+  year_option: 'år', // ai
+  month_option: 'månad', // ai
+  day_option: 'dag', // ai
+  day_of_week_option: 'veckodag', // ai
+  hour_option: 'timme', // ai
+  minute_option: 'minut', // ai
+  second_option: 'sekund', // ai
   ground_level: 'marknivå',
   distance_to: 'avstånd från %1 till %2',
   touching_surface: 'är %1 i kontakt med yta',
@@ -548,6 +557,10 @@ export default {
   meshes_touching_tooltip: 'Returnerar sant om de två valda objekten rör vid varandra.',
   time_tooltip:
     'Returnerar den förflutna tiden. Pausas medan fliken är dold – bäst för speltimers och nedräkningar.', // ai
+  now_tooltip:
+    'Returnerar aktuellt datum och tid från enhetens klocka, till exempel 2026-11-22 14:30:05.', // ai
+  date_part_tooltip:
+    'Returnerar en del av ett datum eller en tid som ett tal, till exempel timmen för nu. Veckodag är 1 för måndag till 7 för söndag.', // ai
   ground_level_tooltip: 'Returnerar markhöjden vid aktuell x/z-position.',
   distance_to_tooltip: 'Beräkna avståndet mellan två objekt.',
   touching_surface_tooltip: 'Kontrollera om objektet rör vid en yta.',

@@ -289,6 +289,15 @@ export default {
   seconds: 'segundos', // human
   milliseconds: 'milisegundos', // human
   minutes: 'minutos', // human
+  now: 'ahora', // ai
+  date_part: '%1 de %2', // ai
+  year_option: 'año', // ai
+  month_option: 'mes', // ai
+  day_option: 'día', // ai
+  day_of_week_option: 'día de la semana', // ai
+  hour_option: 'hora', // ai
+  minute_option: 'minuto', // ai
+  second_option: 'segundo', // ai
   ground_level: 'nivel del suelo', // human
   distance_to: 'distancia de %1 a %2', // human
   touching_surface: '¿%1 está tocando superficie?', // human
@@ -658,6 +667,10 @@ export default {
   meshes_touching_tooltip: 'Devuelve verdadero si los dos objetos seleccionados se están tocando.', // human
   time_tooltip:
     'Devuelve el tiempo transcurrido. Se pausa mientras la pestaña está oculta, ideal para temporizadores y cuentas atrás.', // ai
+  now_tooltip:
+    'Devuelve la fecha y la hora actuales del reloj del dispositivo, por ejemplo 2026-11-22 14:30:05.', // ai
+  date_part_tooltip:
+    'Devuelve una parte de una fecha u hora como número, por ejemplo la hora de ahora. El día de la semana va de 1 (lunes) a 7 (domingo).', // ai
   ground_level_tooltip: 'Devuelve la altura del suelo a la posición x/z actual.', // human
   distance_to_tooltip: 'Calcula la distancia entre dos objetos.', // human
   touching_surface_tooltip: 'Comprueba si el objeto está tocando una superficie.', // human
@@ -1457,7 +1470,7 @@ export default {
   table_row_values_tooltip:
     'Una lista con los valores de una fila en el orden de las columnas. Úsala para copiar una fila a otra tabla o con bloques de listas.', // ai
   time_value_tooltip: 'Una hora del día, escrita como horas:minutos, por ejemplo 14:30.', // ai
-  datetime_value_tooltip: 'Una fecha y una hora del día, por ejemplo 2026-11-22T14:30.', // ai
+  datetime_value_tooltip: 'Una fecha y una hora del día, por ejemplo 2026-11-22 14:30.', // ai
   date_value_tooltip: 'Una fecha, escrita como año-mes-día, por ejemplo 2026-11-22.', // ai
   money_value_tooltip: 'Una cantidad de dinero. Se guarda como un número, redondeado a la moneda más pequeña.', // ai
   table_column_menu_tooltip: 'Elige una columna de la tabla o pon aquí un bloque de texto.', // ai
@@ -1592,7 +1605,11 @@ export default {
   table_value_not_time:
     "La columna {column} de {table} es para horas como 14:30, así que '{value}' no encaja.", // ai
   table_value_not_datetime:
-    "La columna {column} de {table} es para fechas y horas como 2026-11-22T14:30, así que '{value}' no encaja.", // ai
+    "La columna {column} de {table} es para fechas y horas como 2026-11-22 14:30, así que '{value}' no encaja.", // ai
+  date_part_not_date:
+    "'{value}' no es una fecha ni una hora. Usa una como 2026-11-22, 14:30 o 2026-11-22 14:30.", // ai
+  date_part_no_date:
+    "'{value}' es una hora sin fecha, así que no tiene año, mes, día ni día de la semana.", // ai
   table_value_not_color:
     "La columna {column} de {table} es para colores como #ff8800, así que '{value}' no encaja.", // ai
   table_value_not_category:

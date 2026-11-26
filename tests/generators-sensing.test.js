@@ -83,5 +83,26 @@ export function runSensingGeneratorTests() {
       block('wait_until', { CONDITION: block('logic_compare', { A: plus(g), B: null }) });
       expect(generateGroundLevel(g)).to.equal('groundLevelAt(0, 0)');
     });
+
+    it('reads the clock with now', function () {
+      expect(javascriptGenerator.forBlock['now']({})[0]).to.equal('currentDateTime()');
+    });
+
+    it('passes the part and the date value to datePart', function () {
+      const originalValueToCode = javascriptGenerator.valueToCode;
+      const partBlock = { getFieldValue: () => 'day_of_week' };
+      try {
+        javascriptGenerator.valueToCode = () => 'currentDateTime()';
+        expect(javascriptGenerator.forBlock['date_part'](partBlock)[0]).to.equal(
+          'datePart("day_of_week", currentDateTime())'
+        );
+        javascriptGenerator.valueToCode = () => '';
+        expect(javascriptGenerator.forBlock['date_part'](partBlock)[0]).to.equal(
+          'datePart("day_of_week", "")'
+        );
+      } finally {
+        javascriptGenerator.valueToCode = originalValueToCode;
+      }
+    });
   });
 }

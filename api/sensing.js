@@ -1,3 +1,5 @@
+import { normaliseDate, normaliseDateTime, normaliseTime } from './tables.js';
+
 let flock;
 
 export function setFlockReference(ref) {
@@ -272,6 +274,31 @@ export const flockSensing = {
     // countdowns built from differences don't jump on resume.
     const base = flock._frozenAt ?? Date.now();
     return flock.convertTime(base - (flock._frozenAccumMs || 0), unit);
+  },
+  currentDateTime() {
+    const now = new Date();
+    const pad = (n) => String(n).padStart(2, '0');
+    const date = `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())}`;
+    return `${date} ${pad(now.getHours())}:${pad(now.getMinutes())}:${pad(now.getSeconds())}`;
+  },
+  datePart(part, value) {
+    const text = typeof value === 'string' ? value.trim() : '';
+    const dateTime = normaliseDateTime(text);
+    const date = dateTime?.split(' ')[0] ?? normaliseDate(text);
+    const time = dateTime?.split(' ')[1] ?? (date ? null : normaliseTime(text));
+    const needsDate = ['year', 'month', 'day', 'day_of_week'].includes(part);
+    if (!date && (!time || needsDate)) {
+      flock.reportBlockError({
+        api: 'datePart',
+        key: time ? 'date_part_no_date' : 'date_part_not_date',
+        values: { value: String(value ?? '') },
+      });
+      return 0;
+    }
+    const [year, month, day] = (date ?? '').split('-').map(Number);
+    const [hour = 0, minute = 0, second = 0] = (time ?? '').split(':').map(Number);
+    if (part === 'day_of_week') return new Date(Date.UTC(year, month - 1, day)).getUTCDay() || 7;
+    return { year, month, day, hour, minute, second }[part] ?? 0;
   },
   convertTime(ms, unit) {
     switch (unit) {

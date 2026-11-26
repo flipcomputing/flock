@@ -280,6 +280,15 @@ export default {
   seconds: 'sekundach',
   milliseconds: 'milisekundach',
   minutes: 'minutach',
+  now: 'teraz', // ai
+  date_part: '%1 z %2', // ai
+  year_option: 'rok', // ai
+  month_option: 'miesiąc', // ai
+  day_option: 'dzień', // ai
+  day_of_week_option: 'dzień tygodnia', // ai
+  hour_option: 'godzina', // ai
+  minute_option: 'minuta', // ai
+  second_option: 'sekunda', // ai
   ground_level: 'poziom gruntu',
   distance_to: 'odległość od %1 do %2',
   touching_surface: 'czy %1 dotyka powierzchni?',
@@ -545,6 +554,10 @@ export default {
   meshes_touching_tooltip: 'Zwraca true, jeśli dwie wybrane obiekty się stykają.',
   time_tooltip:
     'Zwraca czas, który upłynął. Zatrzymuje się, gdy karta jest ukryta – idealny do liczników i odliczania w grach.', // ai
+  now_tooltip:
+    'Zwraca bieżącą datę i godzinę z zegara urządzenia, na przykład 2026-11-22 14:30:05.', // ai
+  date_part_tooltip:
+    'Zwraca część daty lub godziny jako liczbę, na przykład godzinę z teraz. Dzień tygodnia to 1 dla poniedziałku do 7 dla niedzieli.', // ai
   ground_level_tooltip: 'Zwraca wysokość gruntu w bieżącej pozycji x/z.',
   distance_to_tooltip: 'Oblicz odległość między obiektami %1 i %2.',
   touching_surface_tooltip: 'Sprawdź, czy obiekt %1 dotyka powierzchni.',

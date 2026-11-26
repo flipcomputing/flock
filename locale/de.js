@@ -280,6 +280,15 @@ export default {
   seconds: 'Sekunden',
   milliseconds: 'Millisekunden',
   minutes: 'Minuten',
+  now: 'jetzt', // ai
+  date_part: '%1 von %2', // ai
+  year_option: 'Jahr', // ai
+  month_option: 'Monat', // ai
+  day_option: 'Tag', // ai
+  day_of_week_option: 'Wochentag', // ai
+  hour_option: 'Stunde', // ai
+  minute_option: 'Minute', // ai
+  second_option: 'Sekunde', // ai
   ground_level: 'Bodenniveau',
   distance_to: 'Entfernung von %1 nach %2',
   touching_surface: 'Berührt %1 eine Oberfläche',
@@ -691,6 +700,10 @@ export default {
   meshes_touching_tooltip: 'Gibt true zurück, wenn die zwei gewählten Objekte sich berühren.',
   time_tooltip:
     'Gibt die verstrichene Zeit zurück. Pausiert, während der Tab verborgen ist – ideal für Spiel-Timer und Countdowns.', // ai
+  now_tooltip:
+    'Gibt das aktuelle Datum und die aktuelle Uhrzeit der Geräteuhr zurück, zum Beispiel 2026-11-22 14:30:05.', // ai
+  date_part_tooltip:
+    'Gibt einen Teil eines Datums oder einer Uhrzeit als Zahl zurück, zum Beispiel die Stunde von jetzt. Der Wochentag ist 1 für Montag bis 7 für Sonntag.', // ai
   ground_level_tooltip: 'Gibt die Bodenhöhe an der aktuellen x/z-Position zurück.',
   distance_to_tooltip: 'Berechnet den Abstand zwischen zwei Objekten.',
   touching_surface_tooltip: 'Prüft, ob das Objekt eine Oberfläche berührt.',

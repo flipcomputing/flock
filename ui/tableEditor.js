@@ -47,7 +47,7 @@ const BASE_TYPES = ['', 'TEXT', 'NUMBER', 'MONEY', 'DATE', 'TIME', 'DATETIME', '
 const PICKERS = {
   date: ['date', normaliseDate],
   time: ['time', normaliseTime],
-  datetime: ['datetime-local', normaliseDateTime],
+  datetime: ['datetime-local', (value) => normaliseDateTime(value)?.replace(' ', 'T')],
 };
 
 const baseTypeName = (value) => translate(`table_column_type_${value.toLowerCase() || 'any'}`);

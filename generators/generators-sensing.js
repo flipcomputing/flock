@@ -113,6 +113,17 @@ export function registerSensingGenerators(javascriptGenerator) {
     return [code, javascriptGenerator.ORDER_NONE];
   };
 
+  javascriptGenerator.forBlock['now'] = function () {
+    return ['currentDateTime()', javascriptGenerator.ORDER_FUNCTION_CALL];
+  };
+
+  javascriptGenerator.forBlock['date_part'] = function (block) {
+    const part = JSON.stringify(block.getFieldValue('PART') || 'year');
+    const date =
+      javascriptGenerator.valueToCode(block, 'DATE', javascriptGenerator.ORDER_NONE) || '""';
+    return [`datePart(${part}, ${date})`, javascriptGenerator.ORDER_FUNCTION_CALL];
+  };
+
   // Canvas controls
   javascriptGenerator.forBlock['canvas_controls'] = function (block) {
     const controls = block.getFieldValue('CONTROLS') == 'TRUE';

@@ -2954,6 +2954,18 @@ const toolboxSensing = {
     },
     {
       kind: 'block',
+      type: 'date_part',
+      keyword: 'hour',
+      fields: { PART: 'hour' },
+      inputs: { DATE: { block: { type: 'now' } } },
+    },
+    {
+      kind: 'block',
+      type: 'now',
+      keyword: 'now',
+    },
+    {
+      kind: 'block',
       type: 'canvas_controls',
       keyword: 'canvas',
     },
@@ -4462,7 +4474,7 @@ function valueShadowFor(spec) {
     case 'time':
       return { shadow: { type: 'time_value', fields: { TIME: '12:00' } } };
     case 'datetime':
-      return { shadow: { type: 'datetime_value', fields: { DATETIME: `${todayText()}T12:00` } } };
+      return { shadow: { type: 'datetime_value', fields: { DATETIME: `${todayText()} 12:00` } } };
     case 'color':
       return { shadow: { type: 'colour', fields: { COLOR: '#ff0000' } } };
     case 'category':
@@ -4639,7 +4651,7 @@ const toolboxData = {
             kind: 'block',
             type: 'datetime_value',
             keyword: 'timestamp',
-            fields: { DATETIME: `${todayText()}T12:00` },
+            fields: { DATETIME: `${todayText()} 12:00` },
           },
         ]
       : []),

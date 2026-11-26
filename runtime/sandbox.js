@@ -711,6 +711,8 @@ export const flockSandbox = {
       onIntersect: this.onIntersect?.bind(this),
       getProperty: this.getProperty?.bind(this),
       getTime: this.getTime?.bind(this),
+      currentDateTime: this.currentDateTime?.bind(this),
+      datePart: this.datePart?.bind(this),
       exportMesh: this.exportMesh?.bind(this),
       createVector3: this.createVector3?.bind(this),
       createTable: this.createTable?.bind(this),

@@ -814,7 +814,7 @@ export function defineTableBlocks() {
 
   for (const [type, field, fieldType, value] of [
     [TIME_BLOCK, 'TIME', 'field_time', '12:00'],
-    [DATETIME_BLOCK, 'DATETIME', 'field_datetime', '2026-01-01T12:00'],
+    [DATETIME_BLOCK, 'DATETIME', 'field_datetime', '2026-01-01 12:00'],
   ]) {
     defineTableBlock(
       type,

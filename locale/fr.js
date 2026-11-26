@@ -279,6 +279,15 @@ export default {
   seconds: 'secondes',
   milliseconds: 'millisecondes',
   minutes: 'minutes',
+  now: 'maintenant', // ai
+  date_part: '%1 de %2', // ai
+  year_option: 'année', // ai
+  month_option: 'mois', // ai
+  day_option: 'jour', // ai
+  day_of_week_option: 'jour de la semaine', // ai
+  hour_option: 'heure', // ai
+  minute_option: 'minute', // ai
+  second_option: 'seconde', // ai
   ground_level: 'niveau du sol',
   distance_to: 'distance de %1 à %2',
   touching_surface: '%1 touche la surface',
@@ -556,6 +565,10 @@ export default {
   meshes_touching_tooltip: 'Renvoie vrai si les deux objets sélectionnés se touchent.',
   time_tooltip:
     "Renvoie le temps écoulé. Se met en pause quand l'onglet est masqué, idéal pour les minuteurs et comptes à rebours.", // ai
+  now_tooltip:
+    "Renvoie la date et l'heure actuelles de l'horloge de l'appareil, par exemple 2026-11-22 14:30:05.", // ai
+  date_part_tooltip:
+    "Renvoie une partie d'une date ou d'une heure sous forme de nombre, par exemple l'heure de maintenant. Le jour de la semaine va de 1 (lundi) à 7 (dimanche).", // ai
   ground_level_tooltip: 'Renvoie la hauteur du sol à la position x/z actuelle.',
   distance_to_tooltip: 'Calcule la distance entre deux objets.',
   touching_surface_tooltip: "Vérifie si l'objet touche une surface.",

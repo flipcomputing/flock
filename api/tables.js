@@ -142,7 +142,7 @@ export function normaliseDateTime(value) {
   if (!match) return null;
   const date = normaliseDate(match[1]);
   const time = normaliseTime(match[2]);
-  return date && time ? `${date}T${time}` : null;
+  return date && time ? `${date} ${time}` : null;
 }
 
 export function parseNumberText(value) {
