@@ -265,12 +265,10 @@ function rebuildColumnList(block, list, items) {
     extraState: { itemCount: items.length },
     inputs: Object.fromEntries(items.map((item, i) => [`ADD${i}`, item])),
   };
-  if (list?.isShadow()) {
-    input.connection.setShadowState(state);
-    return;
-  }
-  list?.dispose(false);
-  const created = Blockly.serialization.blocks.append(state, block.workspace);
+  if (list && !list.isShadow()) list.dispose(false);
+  const created = Blockly.serialization.blocks.append(state, block.workspace, {
+    recordUndo: true,
+  });
   input.connection.connect(created.outputConnection);
 }
 
@@ -325,6 +323,55 @@ export function moveStartColumn(block, index, to) {
     rows.forEach(move);
     return columns[index];
   });
+}
+
+export function saveStartDataSnapshot(block) {
+  const connection = block.getInput('COLUMNS').connection;
+  const list = connection.targetBlock();
+  return {
+    data: structuredClone(startData(block)),
+    shadow: connection.getShadowState(true),
+    list: list && !list.isShadow() ? Blockly.serialization.blocks.save(list) : null,
+  };
+}
+
+export function restoreStartDataSnapshot(block, snapshot) {
+  const connection = block.getInput('COLUMNS').connection;
+  const current = connection.targetBlock();
+  if (current && !current.isShadow()) current.dispose(false);
+  connection.setShadowState(snapshot.shadow);
+  if (snapshot.list) {
+    const list = Blockly.serialization.blocks.append(snapshot.list, block.workspace);
+    connection.connect(list.outputConnection);
+  }
+  block.tableData_ = structuredClone(snapshot.data);
+  block.updateRowCount_?.();
+}
+
+export function replaceStartData(block, names, textRows) {
+  const found = columnItems(block);
+  if (!found) return null;
+  const columns = uniqueColumnNames(names);
+  const old = startData(block).types;
+  const types = {};
+  for (const name of columns) {
+    if (Object.hasOwn(old, name)) setOwn(types, name, structuredClone(old[name]));
+  }
+  const specs = columns.map((name) => columnSpec({ ...typeOf(types, name), name }));
+  const rows = textRows.map((row) => columns.map((_, i) => cellFromText(row[i] ?? '', specs[i])));
+  specs.forEach((spec, i) => {
+    if (spec.type !== 'category' || !spec.values.length) return;
+    const added = distinctValues(rows.map((row) => row[i])).filter(
+      (value) => !spec.values.includes(value)
+    );
+    if (added.length) types[spec.name].values = [...spec.values, ...added];
+  });
+  const items = columns.map((name) => ({ shadow: { type: 'text', fields: { TEXT: name } } }));
+  inGroup(() => {
+    writeStartData(block, columns, rows, types);
+    rebuildColumnList(block, found.list, items);
+  });
+  return { columns, rows };
 }
 
 export function distinctValues(cells) {

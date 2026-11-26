@@ -489,3 +489,52 @@ body.color-picker-open .custom-color-picker {
   border-radius: 4px;
   cursor: pointer;
 }
+
+.table-editor-import-dialog {
+  position: fixed;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  width: min(360px, calc(100vw - 20px));
+  margin: 0;
+  padding: 12px;
+  font-family: 'Atkinson Hyperlegible Next', 'Asap', Helvetica, Arial, Lucida, sans-serif;
+  font-size: 13px;
+  color: var(--color-text-primary);
+  background: var(--color-bg);
+  border: 2px solid #511d91;
+  border-radius: 6px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+.table-editor-import-dialog::backdrop {
+  background: rgba(0, 0, 0, 0.1);
+}
+
+.table-editor-import-title {
+  margin: 0;
+  font-size: 14px;
+  overflow-wrap: anywhere;
+}
+
+.table-editor-import-header {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+}
+
+.table-editor-import-notes {
+  margin: 0;
+  padding-left: 1.2em;
+}
+
+.table-editor-import-notes[hidden] {
+  display: none;
+}
+
+.table-editor-import-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+}

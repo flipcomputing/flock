@@ -21,6 +21,7 @@ import {
   moveStartColumn,
   moveStartRow,
   renameStartColumn,
+  replaceStartData,
   setStartCell,
   setStartColumnType,
   startColumnSpecs,
@@ -29,7 +30,17 @@ import {
   startRows,
 } from '../blocks/tableData.js';
 import { openTableEditor } from '../ui/tableEditor.js';
-import { csvFileName, tableToCsv } from '../main/tableCsv.js';
+import { autosaveHeld } from '../main/autosaveHold.js';
+import {
+  BOM,
+  CsvImportError,
+  csvFileName,
+  csvTable,
+  decodeCsv,
+  guessHeader,
+  parseCsv,
+  tableToCsv,
+} from '../main/tableCsv.js';
 import enLocale from '../locale/en.js';
 import esLocale from '../locale/es.js';
 
@@ -1886,6 +1897,169 @@ export function runTablesTests(flock) {
         expect(startRows(creator)).to.deep.equal([[828]]);
       });
 
+      it('replaces columns and start rows in one undo step and keeps types by name', async function () {
+        const creator = load(
+          {
+            columns: ['Name', 'Height'],
+            rows: [['Burj', 828]],
+            types: [['Height', { type: 'number' }]],
+          },
+          'Name',
+          'Height'
+        );
+        replaceStartData(
+          creator,
+          ['Height', 'City', 'City'],
+          [
+            ['310', 'London', 'x'],
+            ['tall', '', ''],
+          ]
+        );
+        expect(columnTexts(creator)).to.deep.equal(['Height', 'City', 'City 2']);
+        expect(startRows(creator)).to.deep.equal([
+          [310, 'London', 'x'],
+          ['tall', '', ''],
+        ]);
+        expect(startColumnSpecs(creator)[0].type).to.equal('number');
+        expect(startColumnSpecs(creator)[1].type).to.equal(null);
+        await undo();
+        expect(columnTexts(creator)).to.deep.equal(['Name', 'Height']);
+        expect(startRows(creator)).to.deep.equal([['Burj', 828]]);
+      });
+
+      it('undoes and redoes an import into a shadow column list', async function () {
+        Blockly.serialization.workspaces.load(
+          project({
+            ...block('table_create', {
+              fields: { VAR: table('Buildings') },
+              inputs: {
+                COLUMNS: {
+                  shadow: {
+                    type: 'lists_create_with',
+                    extraState: { itemCount: 1 },
+                    inputs: { ADD0: text('Name') },
+                  },
+                },
+              },
+            }),
+            extraState: { columns: ['Name'], rows: [['Burj']] },
+          }),
+          workspace
+        );
+        workspace.clearUndo();
+        const creator = workspace.getBlocksByType('table_create', false)[0];
+        replaceStartData(creator, ['Height'], [['828']]);
+        expect(columnTexts(creator)).to.deep.equal(['Height']);
+        await undo();
+        expect(columnTexts(creator)).to.deep.equal(['Name']);
+        expect(startRows(creator)).to.deep.equal([['Burj']]);
+        await settle();
+        workspace.undo(true);
+        await settle();
+        expect(columnTexts(creator)).to.deep.equal(['Height']);
+        expect(startRows(creator)).to.deep.equal([[828]]);
+      });
+
+      it('leaves no stray column list behind when a column change is undone', async function () {
+        const creator = load({ columns: ['Name'], rows: [['Burj']] }, 'Name');
+        const before = workspace.getAllBlocks(false).length;
+        insertStartColumn(creator, 1);
+        replaceStartData(creator, ['A', 'B', 'C'], [['1', '2', '3']]);
+        await undo();
+        await undo();
+        expect(workspace.getAllBlocks(false).length).to.equal(before);
+        expect(columnTexts(creator)).to.deep.equal(['Name']);
+      });
+
+      it('adds new category values found in imported rows', function () {
+        const creator = load(
+          { columns: ['Kind'], rows: [], types: [['Kind', { type: 'category', values: ['big'] }]] },
+          'Kind'
+        );
+        replaceStartData(creator, ['Kind'], [['Big'], ['small']]);
+        expect(startRows(creator)).to.deep.equal([['big'], ['small']]);
+        expect(startColumnSpecs(creator)[0].values).to.deep.equal(['big', 'small']);
+      });
+
+      it('imports a CSV file straight away and keeps or undoes it from the dialog', async function () {
+        const creator = load({ columns: ['Name'], rows: [['Old']] }, 'Name');
+        const original = Object.getOwnPropertyDescriptor(window, 'showOpenFilePicker');
+        const file = new File(['Name,Height\r\nBurj,828\r\nShard,310\r\n'], 'towers.csv');
+        window.showOpenFilePicker = async () => [{ getFile: async () => file }];
+        try {
+          openTableEditor(creator);
+          const editor = document.querySelector('.table-editor');
+          const openButton = () =>
+            [...editor.querySelectorAll('button')].find(
+              (each) => each.getAttribute('aria-label') === 'Open CSV file'
+            );
+          const dialogButton = (dialog, text) =>
+            [...dialog.querySelectorAll('button')].find((each) => each.textContent === text);
+          const pick = async () => {
+            openButton().click();
+            await settle();
+            return document.querySelector('.table-editor-import-dialog');
+          };
+
+          let dialog = await pick();
+          expect(dialog.open).to.equal(true);
+          expect(dialog.querySelector('h3').textContent).to.equal('Import towers.csv');
+          expect(autosaveHeld()).to.equal(true);
+          const header = dialog.querySelector('input[type="checkbox"]');
+          expect(header.checked).to.equal(true);
+          expect(document.activeElement).to.equal(header);
+          expect(columnTexts(creator)).to.deep.equal(['Name', 'Height']);
+          expect(startRows(creator)).to.deep.equal([
+            ['Burj', 828],
+            ['Shard', 310],
+          ]);
+          expect(editor.querySelectorAll('tbody tr').length).to.equal(2);
+          header.checked = false;
+          header.dispatchEvent(new Event('change'));
+          expect(columnTexts(creator)).to.deep.equal(['Column 1', 'Column 2']);
+          expect(startRows(creator)[0]).to.deep.equal(['Name', 'Height']);
+          dialogButton(dialog, 'Cancel').click();
+          expect(document.querySelector('.table-editor-import-dialog')).to.equal(null);
+          expect(autosaveHeld()).to.equal(false);
+          expect(columnTexts(creator)).to.deep.equal(['Name']);
+          expect(startRows(creator)).to.deep.equal([['Old']]);
+          expect(document.activeElement).to.equal(openButton());
+          await settle();
+          expect(workspace.getUndoStack().length).to.equal(0);
+
+          dialog = await pick();
+          dialog.dispatchEvent(new Event('cancel', { cancelable: true }));
+          expect(document.querySelector('.table-editor-import-dialog')).to.equal(null);
+          expect(startRows(creator)).to.deep.equal([['Old']]);
+
+          dialog = await pick();
+          const other = workspace.newBlock('table_create');
+          openTableEditor(other);
+          expect(document.querySelector('.table-editor-import-dialog')).to.equal(null);
+          expect(startRows(creator)).to.deep.equal([['Old']]);
+          expect(autosaveHeld()).to.equal(false);
+          other.dispose(false);
+          openTableEditor(creator);
+
+          dialog = await pick();
+          dialogButton(dialog, 'OK').click();
+          expect(document.querySelector('.table-editor-import-dialog')).to.equal(null);
+          expect(columnTexts(creator)).to.deep.equal(['Name', 'Height']);
+          expect(startRows(creator)).to.deep.equal([
+            ['Burj', 828],
+            ['Shard', 310],
+          ]);
+          await undo();
+          expect(columnTexts(creator)).to.deep.equal(['Name']);
+          expect(startRows(creator)).to.deep.equal([['Old']]);
+        } finally {
+          if (original) Object.defineProperty(window, 'showOpenFilePicker', original);
+          else delete window.showOpenFilePicker;
+          document.querySelector('.table-editor-import-dialog')?.remove();
+          document.querySelector('.table-editor').hidden = true;
+        }
+      });
+
       it('offers CSV export in the editor only when the table has columns', function () {
         const panel = () => document.querySelector('.table-editor');
         const exportButton = () =>
@@ -2718,6 +2892,99 @@ export function runTablesTests(flock) {
         expect(csvFileName('buildings')).to.equal('buildings.csv');
         expect(csvFileName('a/b:c*?"<>|\\d\u0007')).to.equal('abcd.csv');
         expect(csvFileName('  ')).to.equal('table.csv');
+      });
+    });
+
+    describe('CSV import', function () {
+      const columnName = (i) => `Column ${i + 1}`;
+
+      it('splits rows on CRLF, LF and CR line endings', function () {
+        expect(parseCsv('a,b\r\n1,2\n3,4\r5,6').lines).to.deep.equal([
+          ['a', 'b'],
+          ['1', '2'],
+          ['3', '4'],
+          ['5', '6'],
+        ]);
+      });
+
+      it('reads wrapped values with commas, doubled quotes and line breaks', function () {
+        const { lines } = parseCsv('"x, y","say ""hi""","line\r\nbreak"\r\n5" pipe,"a"b\r\n');
+        expect(lines).to.deep.equal([
+          ['x, y', 'say "hi"', 'line\r\nbreak'],
+          ['5" pipe', 'ab'],
+        ]);
+      });
+
+      it('skips empty lines but keeps rows of empty values', function () {
+        expect(parseCsv('a\n\n""\n,\n').lines).to.deep.equal([['a'], [''], ['', '']]);
+      });
+
+      it('stops at the row, column and value length limits and says so', function () {
+        const result = parseCsv('abcd,b,c\n1\n2\n3\n', { rows: 2, columns: 2, cell: 3 });
+        expect(result.lines).to.deep.equal([['abc', 'b'], ['1'], ['2']]);
+        expect(result).to.include({ moreRows: true, moreColumns: true, longCells: true });
+      });
+
+      it('runs an unclosed quote to the end of the file', function () {
+        const result = parseCsv('a,"b\nc');
+        expect(result.lines).to.deep.equal([['a', 'b\nc']]);
+        expect(result.unclosedQuote).to.equal(true);
+      });
+
+      it('guesses whether the first row holds column names', function () {
+        expect(guessHeader([['Name', 'Height'], ['Burj', '828']])).to.equal(true);
+        expect(guessHeader([['Name', 'Colour'], ['Rex', 'red']])).to.equal(true);
+        expect(guessHeader([['', 'Name'], ['0', 'Burj']])).to.equal(true);
+        expect(guessHeader([['Burj', '828'], ['Shard', '310']])).to.equal(false);
+        expect(guessHeader([['Party', '2026-01-01']])).to.equal(false);
+        expect(guessHeader([['Name', 'name']])).to.equal(false);
+        expect(guessHeader([['', '']])).to.equal(false);
+        expect(guessHeader([['2024', 'Total']], ['2024', 'total'])).to.equal(true);
+        expect(guessHeader([])).to.equal(false);
+      });
+
+      it('makes column names from the first row and pads short rows', function () {
+        const lines = [["'=Total", 'a\r\nb', ''], ['1'], ["'-x", 'y', 'z']];
+        expect(csvTable(lines, true, columnName)).to.deep.equal({
+          columns: ['=Total', 'a b', 'Column 3'],
+          rows: [
+            ['1', '', ''],
+            ['-x', 'y', 'z'],
+          ],
+          moreRows: false,
+        });
+        expect(csvTable([['a', 'b']], false, columnName)).to.deep.equal({
+          columns: ['Column 1', 'Column 2'],
+          rows: [['a', 'b']],
+          moreRows: false,
+        });
+        expect(csvTable([['a'], ['1'], ['2']], true, columnName, 1)).to.include({
+          moreRows: true,
+        });
+      });
+
+      it('reads back what export writes', function () {
+        const columns = ['Name', '=Note'];
+        const rows = [
+          ['=sum', 'a, "b"\nc'],
+          ['', '-x'],
+          ["'=sum", "''+1"],
+          ["'plain", "it's"],
+        ];
+        const csv = tableToCsv(columns, rows);
+        const table = csvTable(parseCsv(csv).lines, true, columnName);
+        expect(table.columns).to.deep.equal(columns);
+        expect(table.rows).to.deep.equal(rows);
+        const single = tableToCsv(['A'], [[''], ['x']]);
+        expect(single).to.equal('A\r\n""\r\nx\r\n');
+        expect(parseCsv(single).lines).to.deep.equal([['A'], [''], ['x']]);
+      });
+
+      it('decodes UTF-8 with or without a BOM and falls back to Windows-1252', function () {
+        expect(decodeCsv(new TextEncoder().encode(`${BOM}£,é`))).to.equal('£,é');
+        expect(decodeCsv(new TextEncoder().encode('£'))).to.equal('£');
+        expect(decodeCsv(new Uint8Array([0xa3, 0x2c, 0xe9]))).to.equal('£,é');
+        expect(() => decodeCsv(new Uint8Array([0x89, 0x50, 0x00]))).to.throw(CsvImportError);
       });
     });
 

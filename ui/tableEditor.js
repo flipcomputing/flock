@@ -5,7 +5,18 @@ import { normaliseDate, normaliseDateTime, normaliseTime, typedCell } from '../a
 import { formatDateTime, formatTime } from '../blocks/fieldTimes.js';
 import { contrastRatio } from '../blocks/colourcontrast.js';
 import { saveBlob } from '../main/saveFile.js';
-import { csvFileName, tableToCsv } from '../main/tableCsv.js';
+import { holdAutosave } from '../main/autosaveHold.js';
+import {
+  BOM,
+  CSV_LIMITS,
+  CsvImportError,
+  csvFileName,
+  csvTable,
+  decodeCsv,
+  guessHeader,
+  parseCsv,
+  tableToCsv,
+} from '../main/tableCsv.js';
 import {
   deleteStartColumn,
   deleteStartRow,
@@ -13,6 +24,9 @@ import {
   insertStartRow,
   moveStartColumn,
   moveStartRow,
+  replaceStartData,
+  restoreStartDataSnapshot,
+  saveStartDataSnapshot,
   setStartCell,
   configureStartColumn,
   currencyOptions,
@@ -41,6 +55,7 @@ const ICONS = {
     ['path', { d: 'M8 3v18M19 9v6M16 12h6' }],
   ],
   delete: [['path', { d: 'M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3' }]],
+  importCsv: [['path', { d: 'M12 15V4M7 9l5-5 5 5M5 20h14' }]],
   exportCsv: [['path', { d: 'M12 4v11M7 10l5 5 5-5M5 20h14' }]],
   close: [['path', { d: 'M6 6l12 12M18 6L6 18' }]],
 };
@@ -257,6 +272,7 @@ class TableEditor {
             button('addRow', () => this.addRow()),
             button('addColumn', () => this.addColumn()),
             button('delete', () => this.deleteSelection()),
+            button('importCsv', () => this.importCsv()),
             button('exportCsv', () => this.exportCsv())
           )),
           this.message,
@@ -291,6 +307,7 @@ class TableEditor {
       close: 'table_editor_close',
       addRow: 'table_editor_add_row',
       addColumn: 'table_editor_add_column',
+      importCsv: 'table_editor_import_csv',
       exportCsv: 'table_editor_export_csv',
     };
     for (const [name, key] of Object.entries(labels)) this.label(name, key);
@@ -300,6 +317,7 @@ class TableEditor {
   }
 
   open(block) {
+    if (this.importDialog && this.block !== block) this.importDialog.finish(false, false);
     if (this.editing) this.finishEdit(true);
     if (this.workspace !== block.workspace) {
       this.workspace?.removeChangeListener(this.onChange);
@@ -330,6 +348,7 @@ class TableEditor {
     this.drag?.cancel();
     if (this.editing) this.finishEdit(true);
     this.closeColumnPanel(false);
+    this.importDialog?.finish(false, false);
     this.cancelColourPicker();
     const block = this.liveBlock();
     this.container.hidden = true;
@@ -534,11 +553,13 @@ class TableEditor {
     const columnCount = this.columns?.length ?? 0;
     const hasColumns = editable && columnCount > 0;
     const { row, column } = this.active;
+    const importing = Boolean(this.importDialog);
     const disabled = {
-      addRow: !hasColumns,
-      addColumn: !editable,
-      delete: !hasColumns || row === NAME_ROW,
-      exportCsv: !hasColumns,
+      addRow: !hasColumns || importing,
+      addColumn: !editable || importing,
+      delete: !hasColumns || row === NAME_ROW || importing,
+      importCsv: !editable || importing,
+      exportCsv: !hasColumns || importing,
     };
     for (const [name, off] of Object.entries(disabled)) this.buttons[name].disabled = off;
     this.label(
@@ -579,7 +600,7 @@ class TableEditor {
     const block = this.liveBlock();
     const columns = block && startColumns(block);
     if (!columns?.length) return;
-    const blob = new Blob(['﻿', tableToCsv(columns, startRows(block, columns))], {
+    const blob = new Blob([BOM, tableToCsv(columns, startRows(block, columns))], {
       type: 'text/csv',
     });
     const stillOpen = () => this.block === block && !this.container.hidden;
@@ -595,6 +616,191 @@ class TableEditor {
       console.error('Error saving CSV file:', error);
       if (stillOpen()) this.announce(translate('table_editor_csv_save_failed'));
     }
+  }
+
+  async pickCsvFile() {
+    if ('showOpenFilePicker' in window) {
+      try {
+        const [handle] = await window.showOpenFilePicker({
+          types: [
+            {
+              description: translate('table_csv_file_description'),
+              accept: { 'text/csv': ['.csv'] },
+            },
+          ],
+        });
+        return await handle.getFile();
+      } catch (error) {
+        if (error?.name === 'AbortError') return null;
+        throw error;
+      }
+    }
+    return new Promise((resolve) => {
+      const input = h('input', { type: 'file', accept: '.csv,text/csv', hidden: true });
+      const done = (file) => {
+        input.remove();
+        resolve(file);
+      };
+      input.addEventListener('change', () => done(input.files[0] ?? null));
+      input.addEventListener('cancel', () => done(null));
+      document.body.append(input);
+      input.click();
+    });
+  }
+
+  async importCsv() {
+    if (this.editing) this.finishEdit(true);
+    this.closeColumnPanel(false);
+    const block = this.liveBlock();
+    if (!block || startColumns(block) === null) return;
+    const stillOpen = () => this.block === block && !this.container.hidden && !this.importDialog;
+    try {
+      const file = await this.pickCsvFile();
+      if (!file || !stillOpen()) return;
+      await this.readCsvFile(file);
+    } catch (error) {
+      console.error('Error opening CSV file:', error);
+      if (stillOpen()) alert(translate('table_csv_read_failed'));
+    }
+  }
+
+  async readCsvFile(file) {
+    const block = this.liveBlock();
+    const stillOpen = () => this.block === block && !this.container.hidden && !this.importDialog;
+    try {
+      if (!file.name.toLowerCase().endsWith('.csv')) {
+        throw new CsvImportError('table_csv_wrong_type');
+      }
+      if (file.size > CSV_LIMITS.bytes) throw new CsvImportError('table_csv_too_large');
+      const parsed = parseCsv(decodeCsv(await file.arrayBuffer()));
+      if (!parsed.lines.length) throw new CsvImportError('table_csv_empty');
+      if (stillOpen()) this.startImport(file.name, parsed);
+    } catch (error) {
+      if (!(error instanceof CsvImportError)) console.error('Error reading CSV file:', error);
+      if (stillOpen()) alert(translate(error.key ?? 'table_csv_read_failed'));
+    }
+  }
+
+  startImport(fileName, parsed) {
+    const block = this.liveBlock();
+    const snapshot = saveStartDataSnapshot(block);
+    const owner = () => {
+      const live = this.liveBlock();
+      return live?.id === block.id ? live : null;
+    };
+    const defaultName = (i) => `${translate('table_editor_new_column')} ${i + 1}`;
+    const quietly = (action) => {
+      Blockly.Events.disable();
+      try {
+        action();
+      } finally {
+        Blockly.Events.enable();
+      }
+    };
+
+    const header = h('input', { type: 'checkbox', id: 'tableEditorCsvHeader' });
+    header.checked = guessHeader(parsed.lines, startColumns(block) ?? []);
+    const shape = () => csvTable(parsed.lines, header.checked, defaultName);
+    const notes = h('ul', { class: 'table-editor-import-notes' });
+    const textButton = (key) =>
+      h('button', { type: 'button', class: 'table-editor-text-button' }, translate(key));
+    const okButton = textButton('table_editor_import_ok');
+    const cancelButton = textButton('table_editor_import_cancel');
+    const dialog = h(
+      'dialog',
+      { class: 'table-editor-import-dialog', 'aria-labelledby': 'tableEditorImportTitle' },
+      h(
+        'h3',
+        { id: 'tableEditorImportTitle', class: 'table-editor-import-title' },
+        translate('table_editor_import_title').replace('%1', fileName)
+      ),
+      h(
+        'label',
+        { class: 'table-editor-import-header', for: 'tableEditorCsvHeader' },
+        header,
+        translate('table_editor_import_header')
+      ),
+      notes,
+      h('div', { class: 'table-editor-import-actions' }, okButton, cancelButton)
+    );
+
+    const show = () => {
+      const table = shape();
+      const target = owner();
+      if (!target) return;
+      quietly(() => {
+        restoreStartDataSnapshot(target, snapshot);
+        replaceStartData(target, table.columns, table.rows);
+      });
+      this.active = { row: 0, column: 0 };
+      this.render();
+      const messages = [
+        (parsed.moreRows || table.moreRows) &&
+          translate('table_editor_import_more_rows').replace('%1', String(CSV_LIMITS.rows)),
+        parsed.moreColumns &&
+          translate('table_editor_import_more_columns').replace('%1', String(CSV_LIMITS.columns)),
+        parsed.longCells &&
+          translate('table_editor_import_long_cells').replace('%1', String(CSV_LIMITS.cell)),
+        parsed.unclosedQuote && translate('table_editor_import_unclosed_quote'),
+      ].filter(Boolean);
+      notes.replaceChildren(...messages.map((text) => h('li', {}, text)));
+      notes.hidden = messages.length === 0;
+    };
+
+    const finish = (accept, restoreFocus = true) => {
+      if (this.importDialog?.dialog !== dialog) return;
+      this.importDialog = null;
+      dialog.close();
+      dialog.remove();
+      releaseAutosave();
+      const target = owner();
+      if (!target) return;
+      quietly(() => restoreStartDataSnapshot(target, snapshot));
+      const table = accept ? shape() : null;
+      const result = table && replaceStartData(target, table.columns, table.rows);
+      if (result) this.active = { row: 0, column: 0 };
+      this.render();
+      if (result) {
+        if (restoreFocus) this.focusActive();
+        this.announce(
+          translate('table_editor_imported')
+            .replace('%1', String(result.rows.length))
+            .replace('%2', String(result.columns.length))
+        );
+      } else if (restoreFocus) {
+        this.buttons.importCsv.focus();
+      }
+    };
+
+    header.addEventListener('change', show);
+    okButton.addEventListener('click', () => finish(true));
+    cancelButton.addEventListener('click', () => finish(false));
+    dialog.addEventListener('cancel', (event) => {
+      event.preventDefault();
+      finish(false);
+    });
+    dialog.addEventListener('keydown', (event) => event.stopPropagation());
+
+    const releaseAutosave = holdAutosave();
+    this.importDialog = { dialog, finish };
+    document.body.append(dialog);
+    show();
+    dialog.showModal();
+    this.placeImportDialog(dialog);
+    header.focus();
+  }
+
+  placeImportDialog(dialog) {
+    const area = visibleArea();
+    const rect = this.content.getBoundingClientRect();
+    const width = dialog.offsetWidth;
+    const height = dialog.offsetHeight;
+    const left = rect.left + (rect.width - width) / 2;
+    const top = rect.top + (rect.height - height) / 2;
+    const right = area.left + area.width - width - MARGIN;
+    const bottom = area.top + area.height - height - MARGIN;
+    dialog.style.left = `${clamp(left, area.left + MARGIN, Math.max(area.left + MARGIN, right))}px`;
+    dialog.style.top = `${clamp(top, area.top + MARGIN, Math.max(area.top + MARGIN, bottom))}px`;
   }
 
   announce(text) {

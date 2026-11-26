@@ -1654,6 +1654,23 @@ export default {
   table_editor_csv_saved: 'Archivo CSV guardado', // ai
   table_editor_csv_save_failed: 'No se pudo guardar el archivo CSV', // ai
   table_csv_file_description: 'Archivo CSV', // ai
+  table_editor_import_csv: 'Abrir archivo CSV', // ai
+  table_editor_import_header: 'La primera fila tiene los nombres de las columnas', // ai
+  table_editor_import_more_rows: 'Solo se importaron las primeras %1 filas.', // ai
+  table_editor_import_more_columns: 'Solo se importaron las primeras %1 columnas.', // ai
+  table_editor_import_long_cells: 'Los valores de más de %1 caracteres se recortaron.', // ai
+  table_editor_import_unclosed_quote:
+    'Unas comillas no están cerradas, así que el último valor llega hasta el final del archivo.', // ai
+  table_editor_import_title: 'Importar %1', // ai
+  table_editor_import_ok: 'Aceptar', // ai
+  table_editor_import_cancel: 'Cancelar', // ai
+  table_editor_imported: 'Importado. Filas: %1. Columnas: %2.', // ai
+  table_csv_too_large:
+    'Este archivo es demasiado grande. Un archivo CSV puede tener hasta 1 MB.', // ai
+  table_csv_empty: 'Este archivo no tiene datos.', // ai
+  table_csv_not_text: 'Este archivo no es un archivo CSV.', // ai
+  table_csv_wrong_type: 'Elige un archivo cuyo nombre termine en .csv.', // ai
+  table_csv_read_failed: 'No se pudo leer el archivo CSV.', // ai
   table_column_type_any: 'cualquiera', // ai
   table_editor_field_type: 'Tipo', // ai
   table_editor_field_currency: 'Moneda', // ai

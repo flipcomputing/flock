@@ -20,6 +20,7 @@ import { convertLegacyInitialTransforms } from '../ui/legacyTransforms.js';
 import { setProjectLoading } from './projectLoading.js';
 import { validateBlocklyJson } from './projectJson.js';
 import { DEFAULT_CANVAS_ASPECT, getCanvasAspectName, setCanvasAspectName } from './canvasAspect.js';
+import { autosaveHeld } from './autosaveHold.js';
 
 // Limits applied to every project source — file, drag-and-drop and fetched URL.
 const MAX_PROJECT_FILE_BYTES = 5 * 1024 * 1024;
@@ -130,7 +131,7 @@ export function serializeProject(ws) {
 // Function to save the current workspace state
 export function saveWorkspace(workspace) {
   try {
-    if (!workspace || !workspace.getAllBlocks) return;
+    if (!workspace || !workspace.getAllBlocks || autosaveHeld()) return;
     const state = serializeProject(workspace);
     // Never overwrite a good autosave with an empty/transient workspace —
     // the error banner's Reload action restores the project from this entry.
@@ -612,7 +613,7 @@ export async function exportCode(workspace) {
 
 // Autosave to the last explicitly-saved file handle (no picker shown)
 export async function autoSaveToFile(workspace) {
-  if (!currentFileHandle) return;
+  if (!currentFileHandle || autosaveHeld()) return;
   try {
     if (typeof currentFileHandle.queryPermission === 'function') {
       const permission = await currentFileHandle.queryPermission({
