@@ -4,6 +4,8 @@ import { h, svgIcon } from './dom.js';
 import { normaliseDate, normaliseDateTime, normaliseTime, typedCell } from '../api/tables.js';
 import { formatDateTime, formatTime } from '../blocks/fieldTimes.js';
 import { contrastRatio } from '../blocks/colourcontrast.js';
+import { saveBlob } from '../main/saveFile.js';
+import { csvFileName, tableToCsv } from '../main/tableCsv.js';
 import {
   deleteStartColumn,
   deleteStartRow,
@@ -39,6 +41,7 @@ const ICONS = {
     ['path', { d: 'M8 3v18M19 9v6M16 12h6' }],
   ],
   delete: [['path', { d: 'M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3' }]],
+  exportCsv: [['path', { d: 'M12 4v11M7 10l5 5 5-5M5 20h14' }]],
   close: [['path', { d: 'M6 6l12 12M18 6L6 18' }]],
 };
 
@@ -253,7 +256,8 @@ class TableEditor {
             { class: 'table-editor-toolbar' },
             button('addRow', () => this.addRow()),
             button('addColumn', () => this.addColumn()),
-            button('delete', () => this.deleteSelection())
+            button('delete', () => this.deleteSelection()),
+            button('exportCsv', () => this.exportCsv())
           )),
           this.message,
           this.scroller,
@@ -287,6 +291,7 @@ class TableEditor {
       close: 'table_editor_close',
       addRow: 'table_editor_add_row',
       addColumn: 'table_editor_add_column',
+      exportCsv: 'table_editor_export_csv',
     };
     for (const [name, key] of Object.entries(labels)) this.label(name, key);
     this.hint.textContent = translate('table_editor_keys');
@@ -533,6 +538,7 @@ class TableEditor {
       addRow: !hasColumns,
       addColumn: !editable,
       delete: !hasColumns || row === NAME_ROW,
+      exportCsv: !hasColumns,
     };
     for (const [name, off] of Object.entries(disabled)) this.buttons[name].disabled = off;
     this.label(
@@ -566,6 +572,29 @@ class TableEditor {
     this.showSelection();
     this.updateButtons();
     this.focusActive();
+  }
+
+  async exportCsv() {
+    if (this.editing) this.finishEdit(true);
+    const block = this.liveBlock();
+    const columns = block && startColumns(block);
+    if (!columns?.length) return;
+    const blob = new Blob(['﻿', tableToCsv(columns, startRows(block, columns))], {
+      type: 'text/csv',
+    });
+    const stillOpen = () => this.block === block && !this.container.hidden;
+    try {
+      const saved = await saveBlob(
+        blob,
+        csvFileName(this.tableName()),
+        '.csv',
+        translate('table_csv_file_description')
+      );
+      if (saved && stillOpen()) this.announce(translate('table_editor_csv_saved'));
+    } catch (error) {
+      console.error('Error saving CSV file:', error);
+      if (stillOpen()) this.announce(translate('table_editor_csv_save_failed'));
+    }
   }
 
   announce(text) {

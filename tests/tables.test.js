@@ -29,6 +29,7 @@ import {
   startRows,
 } from '../blocks/tableData.js';
 import { openTableEditor } from '../ui/tableEditor.js';
+import { csvFileName, tableToCsv } from '../main/tableCsv.js';
 import enLocale from '../locale/en.js';
 import esLocale from '../locale/es.js';
 
@@ -1885,6 +1886,22 @@ export function runTablesTests(flock) {
         expect(startRows(creator)).to.deep.equal([[828]]);
       });
 
+      it('offers CSV export in the editor only when the table has columns', function () {
+        const panel = () => document.querySelector('.table-editor');
+        const exportButton = () =>
+          [...panel().querySelectorAll('.table-editor-button')].find(
+            (button) => button.getAttribute('aria-label') === 'Save as CSV file'
+          );
+        try {
+          openTableEditor(load({ columns: ['Name'], rows: [['Burj']] }, 'Name'));
+          expect(exportButton().disabled).to.equal(false);
+          openTableEditor(load(null));
+          expect(exportButton().disabled).to.equal(true);
+        } finally {
+          panel().hidden = true;
+        }
+      });
+
       it('edits cells from the keyboard in the editor', async function () {
         const creator = load({ columns: ['Name', 'Height'], rows: [['Burj', 828]] }, 'Name', 'Height');
         openTableEditor(creator);
@@ -2669,6 +2686,38 @@ export function runTablesTests(flock) {
         } finally {
           panel.hidden = true;
         }
+      });
+    });
+
+    describe('CSV export', function () {
+      it('writes a header row, comma separated rows and CRLF line endings', function () {
+        const csv = tableToCsv(['Name', 'Height'], [['Burj', 828], ['Shard', 310]]);
+        expect(csv).to.equal('Name,Height\r\nBurj,828\r\nShard,310\r\n');
+      });
+
+      it('wraps values that hold commas, quotes or line breaks', function () {
+        const csv = tableToCsv(['Line'], [['Hello, world'], ['Say "hi"'], ['one\ntwo'], ['a\rb']]);
+        expect(csv).to.equal('Line\r\n"Hello, world"\r\n"Say ""hi"""\r\n"one\ntwo"\r\n"a\rb"\r\n');
+      });
+
+      it('keeps text that a spreadsheet would run as a formula as plain text', function () {
+        const csv = tableToCsv(
+          ['=Name', 'Value'],
+          [['=1+2', -5], ['+44 123', 3], ['-x', 0], ['@cmd', ''], ['\tTab', ''], ['\n=1+2', '']]
+        );
+        expect(csv).to.equal(
+          "'=Name,Value\r\n'=1+2,-5\r\n'+44 123,3\r\n'-x,0\r\n'@cmd,\r\n'\tTab,\r\n\"'\n=1+2\",\r\n"
+        );
+      });
+
+      it('pads short rows and drops cells beyond the columns', function () {
+        expect(tableToCsv(['A', 'B'], [['x'], ['1', '2', '3']])).to.equal('A,B\r\nx,\r\n1,2\r\n');
+      });
+
+      it('names the file after the table without characters files cannot hold', function () {
+        expect(csvFileName('buildings')).to.equal('buildings.csv');
+        expect(csvFileName('a/b:c*?"<>|\\d\u0007')).to.equal('abcd.csv');
+        expect(csvFileName('  ')).to.equal('table.csv');
       });
     });
 

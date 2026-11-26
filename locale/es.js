@@ -1650,6 +1650,10 @@ export default {
   table_editor_column_deleted: 'Columna %1 borrada', // ai
   table_editor_cell_cleared: 'Celda vaciada', // ai
   table_editor_column_moved: 'Columna %1 movida', // ai
+  table_editor_export_csv: 'Guardar como archivo CSV', // ai
+  table_editor_csv_saved: 'Archivo CSV guardado', // ai
+  table_editor_csv_save_failed: 'No se pudo guardar el archivo CSV', // ai
+  table_csv_file_description: 'Archivo CSV', // ai
   table_column_type_any: 'cualquiera', // ai
   table_editor_field_type: 'Tipo', // ai
   table_editor_field_currency: 'Moneda', // ai
