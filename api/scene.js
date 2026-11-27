@@ -1036,7 +1036,7 @@ export const flockScene = {
       applyMaterialToGround(ground, material);
       flock.ground = ground;
     } else if (grid) {
-      const layout = terrainLayout(grid);
+      const layout = terrainLayout();
       ground = flock.BABYLON.MeshBuilder.CreateGround(
         'ground',
         {

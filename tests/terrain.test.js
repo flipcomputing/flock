@@ -113,12 +113,12 @@ export function runTerrainTests(flock) {
     });
 
     describe('layout', function () {
-      it('fits the longest side to 100 and keeps cells square', function () {
+      it('covers the same 100 by 100 area as the image maps', function () {
         const layout = terrainLayout({ rows: 4, columns: 5 });
         expect(layout.width).to.equal(100);
-        expect(layout.depth).to.equal(80);
+        expect(layout.depth).to.equal(100);
         expect(layout.subdivisionsX).to.equal(64);
-        expect(layout.subdivisionsY).to.equal(51);
+        expect(layout.subdivisionsY).to.equal(64);
       });
 
       it('puts row 0 at the far edge and column 0 on the left', function () {

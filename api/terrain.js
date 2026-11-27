@@ -41,16 +41,12 @@ export function terrainGrid(rows) {
   return { rows: rowCount, columns: columnCount, heights, problems };
 }
 
-export function terrainLayout(grid) {
-  const longest = Math.max(grid.rows, grid.columns);
-  const cell = TERRAIN_SIZE / longest;
-  const width = cell * grid.columns;
-  const depth = cell * grid.rows;
+export function terrainLayout() {
   return {
-    width,
-    depth,
-    subdivisionsX: Math.max(1, Math.round((TERRAIN_SUBDIVISIONS * grid.columns) / longest)),
-    subdivisionsY: Math.max(1, Math.round((TERRAIN_SUBDIVISIONS * grid.rows) / longest)),
+    width: TERRAIN_SIZE,
+    depth: TERRAIN_SIZE,
+    subdivisionsX: TERRAIN_SUBDIVISIONS,
+    subdivisionsY: TERRAIN_SUBDIVISIONS,
   };
 }
 
