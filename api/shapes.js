@@ -1426,15 +1426,9 @@ export const flockShapes = {
     if (flock.maxMeshesReached()) return null;
     flock._recycleOldestByKey(blockKey);
 
-    const newPlane = flock.BABYLON.MeshBuilder.CreatePlane(
-      planeId,
-      {
-        width,
-        height,
-        sideOrientation: flock.BABYLON.Mesh.DOUBLESIDE,
-      },
-      flock.scene
-    );
+    // Single-sided: materials draw both sides, and a DOUBLESIDE copy would
+    // cover the front with reversed normals.
+    const newPlane = flock.BABYLON.MeshBuilder.CreatePlane(planeId, { width, height }, flock.scene);
     flock.setSizeBasedPlaneUVs(newPlane, width, height);
 
     newPlane.metadata = newPlane.metadata || {};

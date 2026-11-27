@@ -957,6 +957,45 @@ export function runShapesTests(flock) {
         expect(material.diffuseTexture).to.be.instanceOf(flock.BABYLON.DynamicTexture);
       });
 
+      it('should build one set of triangles facing the front', function () {
+        const id = flock.createPlane('testPlaneSides', {
+          color: '#cc0044',
+          width: 1,
+          height: 1,
+          position: [0, 0, 0],
+        });
+        createdIds.push(id);
+
+        const mesh = flock.scene.getMeshByName(id);
+        expect(mesh.getTotalIndices()).to.equal(6);
+        const normals = mesh.getVerticesData(flock.BABYLON.VertexBuffer.NormalKind);
+        for (let i = 0; i < normals.length; i += 3) expect(normals[i + 2]).to.equal(-1);
+      });
+
+      it('should stay visible from the back with every kind of material', async function () {
+        const materials = [
+          '#cc0044',
+          { color: '#ffffff', materialName: 'marble.png' },
+          ['#ff0000', '#0000ff'],
+          { text: 'A', color: '#000000', background: '#ffffff', alpha: 1, scale: 1, angle: 0 },
+        ];
+        for (const [i, color] of materials.entries()) {
+          const id = flock.createPlane(`testPlaneCulling${i}`, {
+            color,
+            width: 1,
+            height: 1,
+            position: [0, 0, 0],
+          });
+          createdIds.push(id);
+          expect(flock.scene.getMeshByName(id).material.backFaceCulling).to.equal(false);
+        }
+
+        const id = createdIds.at(-1);
+        flock.setMaterial(id, { color: '#ffffff', materialName: 'bricks.png' });
+        await new Promise((resolve) => flock.whenModelReady(id, resolve));
+        expect(flock.scene.getMeshByName(id).material.backFaceCulling).to.equal(false);
+      });
+
       it('should tile from the edge, right to left as seen from the front', function () {
         const id = flock.createPlane('testPlaneUVs', {
           color: '#cc0044',
