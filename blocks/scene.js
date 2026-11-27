@@ -14,6 +14,7 @@ import { isProjectLoading } from '../main/projectLoading.js';
 import { nextVariableName } from './variableNames.js';
 import { isInsideProcedureDefinition } from './variableScope.js';
 import { mapNames } from '../config.js';
+import { TABLE_FIELD } from './tables.js';
 import { updateOrCreateMeshFromBlock, watchCloneSources } from '../ui/blockmesh.js';
 import { addInitialTransformRows, defineSameNumberBlock } from './initialTransformRows.js';
 import { translate, getTooltip, getOption } from '../main/translation.js';
@@ -463,6 +464,21 @@ export function defineSceneBlocks() {
       ];
 
       initSceneJsonBlock(this, { type: 'create_map', args0 });
+      attachCreateMapOnChange(this);
+    },
+  };
+
+  Blockly.Blocks['create_map_table'] = {
+    init: function () {
+      const args0 = [
+        { type: TABLE_FIELD, name: 'TABLE', variable: 'table1' },
+        buildInputValueArg({
+          name: 'MATERIAL',
+          check: ['Material', 'Array', 'Colour', 'material_like', 'colour_array'],
+        }),
+      ];
+
+      initSceneJsonBlock(this, { type: 'create_map_table', args0 });
       attachCreateMapOnChange(this);
     },
   };

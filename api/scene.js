@@ -1,5 +1,7 @@
 import { TEXTURE_TILE_SIZE } from '../config.js';
 import { isHeightDirection } from './material.js';
+import { tableContents } from './tables.js';
+import { terrainGrid, terrainHeightAt, terrainKey, terrainLayout } from './terrain.js';
 import {
   isBodyAlive,
   movePendingBody,
@@ -966,7 +968,12 @@ export const flockScene = {
       }
     };
 
-    if (flock.ground && flock.ground.metadata?.heightMapImage === image) {
+    const grid = image && typeof image === 'object' ? image.grid : null;
+    const gridKey = grid ? terrainKey(grid) : null;
+    const sameMap = grid
+      ? flock.ground?.metadata?.terrainKey === gridKey
+      : flock.ground?.metadata?.heightMapImage === image;
+    if (flock.ground && sameMap) {
       applyMaterialToGround(flock.ground, material);
       return;
     }
@@ -1028,6 +1035,50 @@ export const flockScene = {
       if (shouldScaleUVs) scaleGroundUVs(ground);
       applyMaterialToGround(ground, material);
       flock.ground = ground;
+    } else if (grid) {
+      const layout = terrainLayout(grid);
+      ground = flock.BABYLON.MeshBuilder.CreateGround(
+        'ground',
+        {
+          width: layout.width,
+          height: layout.depth,
+          subdivisionsX: layout.subdivisionsX,
+          subdivisionsY: layout.subdivisionsY,
+        },
+        flock.scene
+      );
+      const positions = ground.getVerticesData(flock.BABYLON.VertexBuffer.PositionKind);
+      for (let i = 0; i < positions.length; i += 3) {
+        positions[i + 1] = terrainHeightAt(grid, layout, positions[i], positions[i + 2]);
+      }
+      const normals = [];
+      flock.BABYLON.VertexData.ComputeNormals(positions, ground.getIndices(), normals);
+      ground.setVerticesData(flock.BABYLON.VertexBuffer.PositionKind, positions);
+      ground.setVerticesData(flock.BABYLON.VertexBuffer.NormalKind, normals);
+      ground.refreshBoundingInfo();
+      ground.isPickable = true;
+      ground.metadata = {
+        blockKey: 'ground',
+        skipAutoTiling: true,
+        textureTileSize: mapTexturePhysicalSize,
+        heightMapImage: 'TABLE',
+        terrainKey: gridKey,
+      };
+      const body = new flock.BABYLON.PhysicsBody(
+        ground,
+        flock.BABYLON.PhysicsMotionType.STATIC,
+        false,
+        flock.scene
+      );
+      body.shape = new flock.BABYLON.PhysicsShapeMesh(ground, flock.scene);
+      flock.applyBounciness(body, ground);
+      ground.physics = body;
+      ground.physicsShape = body.shape;
+      body.disablePreStep = false;
+      ground.receiveShadows = true;
+      if (shouldScaleUVs) scaleGroundUVs(ground);
+      applyMaterialToGround(ground, material);
+      flock.ground = ground;
     } else {
       ground = flock.BABYLON.MeshBuilder.CreateGroundFromHeightMap(
         'ground',
@@ -1080,6 +1131,19 @@ export const flockScene = {
       );
       flock.ground = ground;
     }
+  },
+  createMapFromTable(name, material) {
+    const { columns, rows } = tableContents('createMapFromTable', name);
+    const grid = terrainGrid(rows);
+    for (const { key, values } of grid.problems) {
+      const column = values.column === undefined ? {} : { column: columns[values.column] };
+      flock.reportBlockError({
+        api: 'createMapFromTable',
+        key,
+        values: { table: name, ...values, ...column },
+      });
+    }
+    flock.createMap({ grid }, material);
   },
   getGroundLevelAt(x = 0, z = 0, { rayStartY = 1000, rayLength = 5000 } = {}) {
     if (!sceneReady()) return 0;

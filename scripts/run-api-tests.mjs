@@ -127,6 +127,11 @@ const AVAILABLE_SUITES = [
     pattern: '@tables',
   },
   {
+    id: 'terrain',
+    name: 'Terrain From Table Tests',
+    pattern: '@terrain',
+  },
+  {
     id: 'sandbox',
     name: 'Sandbox Boundary Tests',
     pattern: '@sandbox',

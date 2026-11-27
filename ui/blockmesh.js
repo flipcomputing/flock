@@ -12,7 +12,9 @@ import { normaliseColourInput } from '../blocks/colourvalidation.js';
 import { isInsideProcedureDefinition } from '../blocks/variableScope.js';
 
 export { getOwnVar };
-import { objectColours, TEXTURE_TILE_SIZE } from '../config.js';
+import { MAP_BLOCK_TYPES, objectColours, TEXTURE_TILE_SIZE } from '../config.js';
+import { terrainGrid } from '../api/terrain.js';
+import { tableStartRows } from '../blocks/tables.js';
 import { shapeError } from '../api/freeformgeometry.js';
 import { markPendingBodyStale, releaseShape } from '../api/physics.js';
 import {
@@ -360,7 +362,7 @@ export function deleteMeshFromBlock(blockId) {
 
   if (!blockKey) {
     const block = Blockly.getMainWorkspace().getBlockById(blockId);
-    if (block && block.type === 'create_map') {
+    if (block && MAP_BLOCK_TYPES.has(block.type)) {
       const mesh = flock?.scene?.getMeshByName('ground');
       if (mesh) {
         flock.disposeMesh(mesh);
@@ -428,7 +430,7 @@ function applyCloneDoBlock(block, owner, meshes = getMeshesFromBlock(owner)) {
 export function getMeshFromBlock(block) {
   if (!block) return null;
 
-  if (block.type === 'create_map') {
+  if (MAP_BLOCK_TYPES.has(block.type)) {
     return flock?.scene?.getMeshByName('ground');
   }
 
@@ -446,7 +448,7 @@ export function getMeshFromBlock(block) {
 export function getMeshesFromBlock(block) {
   if (!block) return [];
 
-  if (block.type === 'create_map') {
+  if (MAP_BLOCK_TYPES.has(block.type)) {
     const mesh = flock?.scene?.getMeshByName('ground');
     return mesh ? [mesh] : [];
   }
@@ -816,6 +818,7 @@ export function updateOrCreateMeshFromBlock(block, changeEvent) {
     'set_background_color',
     'create_ground',
     'create_map',
+    'create_map_table',
   ];
 
   if (flock.meshDebug)
@@ -1201,7 +1204,10 @@ function updateMapFromBlock(mesh, block, changeEvent) {
   meshMap['ground'] = block;
   meshBlockIdMap['ground'] = block.id;
 
-  const mapName = block.getFieldValue('MAP_NAME');
+  const mapName =
+    block.type === 'create_map_table'
+      ? { grid: terrainGrid(tableStartRows(block)) }
+      : block.getFieldValue('MAP_NAME');
   const materialBlock = block.getInputTargetBlock('MATERIAL');
 
   if (!materialBlock) return;
@@ -1254,7 +1260,7 @@ function resolveColorAndMaterialForBlock(block) {
   if (block.type === 'load_multi_object' || block.type === 'load_model') {
     return { color: readColourList(block.getInputTargetBlock('COLORS')), materialInfo: null };
   }
-  if (block.type === 'create_map') return { color: undefined, materialInfo: null };
+  if (MAP_BLOCK_TYPES.has(block.type)) return { color: undefined, materialInfo: null };
 
   const colorInput = block.getInputTargetBlock('COLOR');
   if (colorInput?.type === 'material') {
@@ -2178,7 +2184,13 @@ export function updateMeshFromBlock(meshesOrMesh, block, changeEvent) {
 
   if (
     meshes.length === 0 &&
-    !['set_sky_color', 'set_background_color', 'create_ground', 'create_map'].includes(block.type)
+    ![
+      'set_sky_color',
+      'set_background_color',
+      'create_ground',
+      'create_map',
+      'create_map_table',
+    ].includes(block.type)
   ) {
     if (flock.meshDebug) console.log('No mesh and not a special block type, returning');
     return;
@@ -2315,7 +2327,7 @@ export function updateMeshFromBlock(meshesOrMesh, block, changeEvent) {
     if (touched) changed = 'VERTICES';
   }
 
-  if (!changed && block.type === 'create_map') {
+  if (!changed && MAP_BLOCK_TYPES.has(block.type)) {
     const m = block.getInputTargetBlock('MATERIAL');
     if (m) {
       const touched =
@@ -2332,7 +2344,7 @@ export function updateMeshFromBlock(meshesOrMesh, block, changeEvent) {
       block.type === 'set_sky_color' ||
       block.type === 'set_background_color' ||
       block.type === 'create_ground' ||
-      block.type === 'create_map'
+      MAP_BLOCK_TYPES.has(block.type)
     ) {
       changed = 'COLOR';
     } else {
@@ -2371,7 +2383,7 @@ export function updateMeshFromBlock(meshesOrMesh, block, changeEvent) {
     return;
   }
 
-  if (block.type === 'create_map') {
+  if (MAP_BLOCK_TYPES.has(block.type)) {
     updateMapFromBlock(null, block, changeEvent);
     return;
   }

@@ -137,6 +137,7 @@ export default {
   create_ground: 'ground %1',
   set_background_color: 'background %1',
   create_map: 'map %1 with %2',
+  create_map_table: 'map from table %1 with %2',
   show: 'show %1',
   hide: 'hide %1',
   dispose: 'dispose %1',
@@ -545,6 +546,8 @@ export default {
   create_ground_tooltip: 'Add a ground plane with collisions enabled to the scene.',
   set_background_color_tooltip: "Set the scene's background color.",
   create_map_tooltip: 'Create a map with the selected name and material.',
+  create_map_table_tooltip:
+    'Make the ground from a table of numbers. Each number is the height of one square.',
   show_tooltip: 'Show the selected object.',
   hide_tooltip: 'Hide the selected object.',
   dispose_tooltip: 'Remove the specified object from the scene.',
@@ -1686,6 +1689,12 @@ export default {
   tag_not_found: "{tag} isn't a tag.",
   table_not_made: "That table hasn't been made yet. Use a create table block first.",
   table_not_found: "There's no table called {table}.",
+  map_table_too_big:
+    'A map table can have up to {max} rows and {max} columns. The rest are left out.',
+  map_table_not_number:
+    "Row {row}, column {column} in {table} isn't a number, so the map uses 0 there.",
+  map_table_far:
+    'Row {row}, column {column} in {table} is {value}. Map heights are usually from -{max} to {max}.',
   table_column_not_found: "There's no column called {column} in {table}.",
   table_no_rows: "{table} has no rows yet, so there's no row {row}.",
   table_empty: '{table} has no rows yet.',

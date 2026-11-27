@@ -31,6 +31,11 @@ function findTable(api, name) {
   return table ?? null;
 }
 
+export function tableContents(api, name) {
+  const table = findTable(api, name);
+  return { columns: table?.columns ?? [], rows: table?.rows ?? [] };
+}
+
 function findColumn(api, table, name, column) {
   const index = table.columns.indexOf(String(column));
   if (index === -1) report(api, 'table_column_not_found', { table: name, column: String(column) });

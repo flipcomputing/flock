@@ -57,6 +57,15 @@ export function registerSceneGenerators(javascriptGenerator) {
     return `createMap(${JSON.stringify(mapName)}, ${material});\n`;
   };
 
+  javascriptGenerator.forBlock['create_map_table'] = function (block) {
+    const table = javascriptGenerator.getVariableName(block.getFieldValue('TABLE'));
+    const material =
+      javascriptGenerator.valueToCode(block, 'MATERIAL', javascriptGenerator.ORDER_NONE) || 'null';
+    meshMap['ground'] = block;
+    meshBlockIdMap['ground'] = block.id;
+    return `createMapFromTable(${table}, ${material});\n`;
+  };
+
   // Background -------------------------------------------------------
   javascriptGenerator.forBlock['set_background_color'] = function (block) {
     // Defaults to a quoted hex string (e.g., "#6495ED")

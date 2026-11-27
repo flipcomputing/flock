@@ -23,7 +23,7 @@ import { makeTableDataField, TABLE_DATA_FIELD_NAME } from './fieldTableData.js';
 
 export const TABLE_LOOP_TYPE = 'table_for_each_row';
 const TABLE_VARIABLE_TYPE = 'Table';
-const TABLE_FIELD = 'field_table_variable';
+export const TABLE_FIELD = 'field_table_variable';
 
 class FieldTableVariable extends Blockly.FieldVariable {
   static fromJson(options) {
@@ -103,6 +103,14 @@ const columnText = (item, renamed) => {
   if (item && item === renamed?.textBlock) return renamed.name;
   return item?.type === 'text' ? item.getFieldValue('TEXT') : '';
 };
+
+export function tableStartRows(block, field = 'TABLE') {
+  const name = block.getField(field)?.getText();
+  const creator = block.workspace
+    ?.getBlocksByType('table_create', false)
+    .find((each) => each.isEnabled() && sameName(each.getField('VAR')?.getText(), name));
+  return creator ? startRows(creator) : [];
+}
 
 export function tableColumnInfo(workspace, tableName, renamed = null) {
   const columns = [];

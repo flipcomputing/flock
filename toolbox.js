@@ -1516,6 +1516,25 @@ const toolboxScene = {
         },
       },
     },
+    ...(isFeatureEnabled('dataScience')
+      ? [
+          {
+            kind: 'block',
+            type: 'create_map_table',
+            keyword: 'terrain',
+            inputs: {
+              MATERIAL: {
+                shadow: {
+                  type: 'material',
+                  inputs: {
+                    BASE_COLOR: { shadow: { type: 'colour', fields: { COLOR: '#71BC78' } } },
+                  },
+                },
+              },
+            },
+          },
+        ]
+      : []),
     {
       kind: 'block',
       type: 'set_background_color',

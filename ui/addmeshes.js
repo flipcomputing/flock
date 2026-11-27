@@ -83,7 +83,13 @@ export function createMeshOnCanvas(block) {
   let position, scale, color, modelName, newMesh;
 
   if (
-    !['set_sky_color', 'set_background_color', 'create_ground', 'create_map'].includes(block.type)
+    ![
+      'set_sky_color',
+      'set_background_color',
+      'create_ground',
+      'create_map',
+      'create_map_table',
+    ].includes(block.type)
   ) {
     // Helper function to safely get position value
     function getPositionValue(inputName, defaultValue = 0) {
