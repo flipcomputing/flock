@@ -1041,6 +1041,8 @@ export function runTablesTests(flock) {
         expect(rows.filter((row) => row[3] === '')).to.have.length(13);
         expect(code).to.match(/setTableValue\(Elements, findTableRow\(Elements, ['"]Symbol['"], ['"]Al['"]/);
         expect(rows.filter((row) => row[7] === '')).to.have.length(10);
+        expect(rows[45][7]).to.equal('6985');
+        expect(code).to.match(/findTableRow\(Elements, ['"]Symbol['"], ['"]Pd['"]/);
         expect(rows.every((row) => row[3] === '' || typeof row[3] === 'number')).to.equal(true);
         expect(code).to.match(/setTableValue\(Elements, [^,]+, ['"]Year['"]/);
         expect(() => flock.prepareUserCode(code)).not.to.throw();
@@ -2384,6 +2386,14 @@ export function runTablesTests(flock) {
         ]);
       });
 
+      it('accepts colours with an alpha', function () {
+        flock.createTable('Paint', ['Colour'], [], { Colour: { type: 'color' } });
+        flock.addTableRow('Paint', ['#6985']);
+        flock.addTableRow('Paint', ['AABBCCDD']);
+        expect(flock.getTableColumn('Paint', 'Colour')).to.deep.equal(['#66998855', '#aabbccdd']);
+        expect(reported).to.deep.equal([]);
+      });
+
       it('handles times and dates with times', function () {
         flock.createTable('Log', ['At', 'When'], [], {
           At: { type: 'time' },
@@ -2578,6 +2588,40 @@ export function runTablesTests(flock) {
           openTableEditor(other);
           expect(document.querySelector('th.table-editor-editing')).to.equal(null);
           expect(startColumnSpecs(other)).to.deep.equal([{ name: 'Colour', type: 'color' }]);
+        } finally {
+          window.flockColorPicker = original;
+          document.querySelector('.table-editor').hidden = true;
+        }
+      });
+
+      it('shows colours with an alpha by their solid colour', function () {
+        Blockly.serialization.workspaces.load(
+          project(
+            creatorOf(['Colour'], {
+              columns: ['Colour'],
+              rows: [['#11223380']],
+              types: { Colour: { type: 'color' } },
+            })
+          ),
+          workspace
+        );
+        const [shop] = workspace.getBlocksByType('table_create', false);
+        const original = window.flockColorPicker;
+        let started = null;
+        window.flockColorPicker = {
+          isOpen: false,
+          open(start) {
+            started = start;
+          },
+        };
+        try {
+          openTableEditor(shop);
+          const cell = document.querySelector('.table-editor-colour');
+          expect(cell.style.color).to.equal('rgb(255, 255, 255)');
+          document.activeElement.dispatchEvent(
+            new KeyboardEvent('keydown', { key: 'Enter', bubbles: true })
+          );
+          expect(started).to.equal('#112233');
         } finally {
           window.flockColorPicker = original;
           document.querySelector('.table-editor').hidden = true;

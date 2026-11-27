@@ -486,15 +486,11 @@ export const flockMaterial = {
     }
 
     // Babylon's Color3.fromHexString only accepts #RRGGBB, so expand the
-    // #RGB shorthand (e.g. #f0c -> #ff00cc) rather than passing it through.
-    const expandShortHex = (hex) => (hex.length === 3 ? hex.replace(/(.)/g, '$1$1') : hex);
-
-    if (/^([0-9A-F]{3}|[0-9A-F]{6})$/i.test(colourString)) {
-      return `#${expandShortHex(colourString).toLowerCase()}`;
-    }
-
-    if (/^#([0-9A-F]{3}){1,2}$/i.test(colourString)) {
-      return `#${expandShortHex(colourString.slice(1)).toLowerCase()}`;
+    // #RGB shorthand (e.g. #f0c -> #ff00cc) and drop any alpha digits.
+    const hex = /^#?([0-9A-F]{3,4}|[0-9A-F]{6}|[0-9A-F]{8})$/i.exec(colourString)?.[1];
+    if (hex) {
+      const full = hex.length <= 4 ? hex.replace(/(.)/g, '$1$1') : hex;
+      return `#${full.slice(0, 6).toLowerCase()}`;
     }
 
     try {

@@ -330,6 +330,13 @@ export function runMaterialsTests(flock) {
       expect(flock.getColorFromString('#800080')).to.equal('#800080');
     });
 
+    it('should drop the alpha from 4 and 8-digit hex in getColorFromString', async function () {
+      expect(flock.getColorFromString('#f0c8')).to.equal('#ff00cc');
+      expect(flock.getColorFromString('6985')).to.equal('#669988');
+      expect(flock.getColorFromString('#11223344')).to.equal('#112233');
+      expect(flock.getColorFromString('AABBCCDD')).to.equal('#aabbcc');
+    });
+
     it('should apply tint with CSS color names', async function () {
       const id = 'boxTintColorName';
       await createBoxWithColorAndPosition(id);

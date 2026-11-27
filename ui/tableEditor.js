@@ -151,8 +151,11 @@ function colourRgb(css) {
   colourProbe ??= document.createElement('canvas').getContext('2d');
   colourProbe.fillStyle = '#000000';
   colourProbe.fillStyle = css;
-  const hex = /^#([0-9a-f]{2})([0-9a-f]{2})([0-9a-f]{2})$/i.exec(colourProbe.fillStyle);
-  return hex ? hex.slice(1).map((part) => parseInt(part, 16)) : null;
+  const resolved = colourProbe.fillStyle;
+  const hex = /^#([0-9a-f]{2})([0-9a-f]{2})([0-9a-f]{2})$/i.exec(resolved);
+  if (hex) return hex.slice(1).map((part) => parseInt(part, 16));
+  const rgba = /^rgba\((\d+), (\d+), (\d+), [\d.]+\)$/.exec(resolved);
+  return rgba ? rgba.slice(1).map(Number) : null;
 }
 
 function textColourOn(css) {
@@ -1205,7 +1208,10 @@ class TableEditor {
     const blockId = this.liveBlock()?.id;
     const stamp = this.dataStamp();
     const current = this.rows[row][column];
-    const start = colourRgb(String(current)) && current !== '' ? String(current) : '#ffffff';
+    const rgb = current === '' ? null : colourRgb(String(current));
+    const start = rgb
+      ? `#${rgb.map((part) => part.toString(16).padStart(2, '0')).join('')}`
+      : '#ffffff';
     const onEscape = (event) => {
       if (!picker.isOpen) {
         window.removeEventListener('keydown', onEscape, true);

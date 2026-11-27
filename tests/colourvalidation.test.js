@@ -1,5 +1,5 @@
 import { expect } from 'chai';
-import { isValidColourInput } from '../blocks/colourvalidation.js';
+import { isValidColourInput, normaliseColourInput } from '../blocks/colourvalidation.js';
 
 export function runColourValidationTests() {
   describe('blocks/colourvalidation @colourvalidation', function () {
@@ -12,6 +12,14 @@ export function runColourValidationTests() {
       it('accepts 3-digit hex', function () {
         expect(isValidColourInput('f0c')).to.equal(true);
         expect(isValidColourInput('#f0c')).to.equal(true);
+      });
+
+      it('accepts 4 and 8-digit hex with an alpha', function () {
+        expect(isValidColourInput('#6985')).to.equal(true);
+        expect(isValidColourInput('6985')).to.equal(true);
+        expect(isValidColourInput('#11223344')).to.equal(true);
+        expect(isValidColourInput('11223344')).to.equal(true);
+        expect(isValidColourInput('#11223')).to.equal(false);
       });
 
       it('trims surrounding whitespace', function () {
@@ -53,6 +61,13 @@ export function runColourValidationTests() {
         expect(isValidColourInput(null)).to.equal(false);
         expect(isValidColourInput(undefined)).to.equal(false);
         expect(isValidColourInput(123)).to.equal(false);
+      });
+    });
+
+    describe('normaliseColourInput', function () {
+      it('expands 4-digit hex and keeps 8-digit hex', function () {
+        expect(normaliseColourInput('#6985')).to.equal('#66998855');
+        expect(normaliseColourInput('11223344')).to.equal('#11223344');
       });
     });
   });

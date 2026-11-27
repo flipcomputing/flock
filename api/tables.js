@@ -191,7 +191,7 @@ function roundDecimal(amount, digits) {
 
 export function normaliseColour(value) {
   const colour = normaliseColourInput(String(value));
-  return colour && /^#[0-9a-f]{6}$/i.test(colour) ? colour.toLowerCase() : colour;
+  return colour && /^#([0-9a-f]{6}|[0-9a-f]{8})$/i.test(colour) ? colour.toLowerCase() : colour;
 }
 
 export function typedCell(spec, value) {

@@ -17,7 +17,7 @@ let probeContext;
 function cssToRgb(value) {
   if (!isValidColourInput(value)) return null;
   const trimmed = value.trim();
-  const css = /^([0-9a-f]{3}|[0-9a-f]{6})$/i.test(trimmed) ? `#${trimmed}` : trimmed;
+  const css = /^([0-9a-f]{3,4}|[0-9a-f]{6}|[0-9a-f]{8})$/i.test(trimmed) ? `#${trimmed}` : trimmed;
   probeContext ??= document.createElement('canvas').getContext('2d');
   probeContext.fillStyle = '#000000';
   probeContext.fillStyle = css;
