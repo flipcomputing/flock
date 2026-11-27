@@ -779,6 +779,11 @@ export function defineTableBlocks() {
     output: 'Number',
   }));
 
+  defineTableBlock('table_get', () => ({
+    args0: [tableField()],
+    output: 'Table',
+  }));
+
   defineTableBlock(
     TABLE_LOOP_TYPE,
     () => ({

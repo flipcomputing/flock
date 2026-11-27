@@ -4548,6 +4548,7 @@ export function tableFlyoutBlocks(
       inputs: { COLUMN: column },
     },
     { kind: 'sep', gap: 24 },
+    { kind: 'block', type: 'table_get', fields: { TABLE } },
     {
       kind: 'block',
       type: 'table_get_value',

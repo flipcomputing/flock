@@ -460,6 +460,7 @@ export default {
   table_sort_descending_option: 'descending',
   table_sort_random_option: 'random',
   table_row_count: 'number of rows in %1',
+  table_get: '%1',
   table_for_each_row: 'for each row %1 number %2 in %3',
   table_row_value: '%1 of %2',
   table_row_values: 'list from %1',
@@ -1565,6 +1566,7 @@ export default {
   table_sort_tooltip:
     'Put the rows in order of one column, or in a random order. In ascending order numbers come before text, and descending order is the reverse. Capital letters sort the same as small letters.',
   table_row_count_tooltip: 'How many rows the table has.',
+  table_get_tooltip: 'The whole table, to use in blocks that work with a table.',
   table_for_each_row_tooltip:
     'Run the blocks inside once for each row. The first variable holds the row and the second holds its number, starting at 0.',
   table_row_value_tooltip: 'The value in this column of a row.',

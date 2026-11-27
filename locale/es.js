@@ -417,6 +417,7 @@ export default {
   table_sort_descending_option: 'descendente', // ai
   table_sort_random_option: 'aleatorio', // ai
   table_row_count: 'número de filas en %1', // ai
+  table_get: '%1', // ai
   table_for_each_row: 'para cada fila %1 número %2 en %3', // ai
   table_row_value: '%1 de %2', // ai
   table_row_values: 'lista de %1', // ai
@@ -1464,6 +1465,7 @@ export default {
   table_sort_tooltip:
     'Pone las filas en orden según una columna, o en un orden aleatorio. En orden ascendente los números van antes que el texto, y el orden descendente es al revés. Las mayúsculas se ordenan igual que las minúsculas.', // ai
   table_row_count_tooltip: 'Cuántas filas tiene la tabla.', // ai
+  table_get_tooltip: 'La tabla entera, para usarla en bloques que trabajan con una tabla.', // ai
   table_for_each_row_tooltip:
     'Ejecuta los bloques de dentro una vez por cada fila. La primera variable contiene la fila y la segunda su número, empezando por 0.', // ai
   table_row_value_tooltip: 'El valor de esta columna en una fila.', // ai

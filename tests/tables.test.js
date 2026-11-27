@@ -1683,6 +1683,30 @@ export function runTablesTests(flock) {
           });
         }
       });
+
+      it('offers a table reporter for the newest table in the flyout', function () {
+        const reporter = tableFlyoutBlocks('Buildings', 'table2').find(
+          (item) => item.type === 'table_get'
+        );
+        expect(reporter.fields).to.deep.equal({ TABLE: { name: 'Buildings' } });
+      });
+
+      it('generates the table variable for a table reporter', function () {
+        const code = compileFlockProject(
+          project(
+            chain(
+              ...createBuildings(),
+              block('variables_set', {
+                fields: { VAR: { name: 'kept' } },
+                inputs: {
+                  VALUE: value(block('table_get', { fields: { TABLE: table('Buildings') } })),
+                },
+              })
+            )
+          )
+        );
+        expect(code).to.match(/kept\w* = Buildings\w*;/);
+      });
     });
 
     describe('start data', function () {

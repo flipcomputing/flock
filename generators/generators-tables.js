@@ -101,6 +101,10 @@ export function registerTablesGenerators(javascriptGenerator) {
     return call(`getTableRowCount(${tableVar(block)})`);
   };
 
+  javascriptGenerator.forBlock['table_get'] = function (block) {
+    return [tableVar(block), javascriptGenerator.ORDER_ATOMIC];
+  };
+
   javascriptGenerator.forBlock['table_for_each_row'] = function (block, generator) {
     const rowId = block.getFieldValue('VAR');
     const indexId = block.getFieldValue('INDEX');
