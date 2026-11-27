@@ -1281,6 +1281,9 @@ export default {
   drag_drop_hint: 'Déposez pour ouvrir le projet ou importer un extrait',
   drop_unsupported_file_alert:
     'Seuls les fichiers .flock, .json, .fsnip ou .png peuvent être déposés.',
+  drag_drop_hint_tables: 'Déposez pour ouvrir le projet, importer un extrait ou créer un tableau',
+  drop_unsupported_file_alert_tables:
+    'Seuls les fichiers .flock, .json, .fsnip, .png, .csv ou .txt peuvent être déposés.',
 
   // UI status messages
   max_mesh_limit_reached:

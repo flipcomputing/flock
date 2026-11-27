@@ -1515,6 +1515,10 @@ export default {
     'Flock XR no pudo cargar este proyecto. Puede que el enlace sea incorrecto o que el sitio web no permita que otros sitios abran sus archivos.', // ai
   drag_drop_hint: 'Suelta aqui para abrir el proyecto o importar un fragmento', // human
   drop_unsupported_file_alert: 'Solo se pueden soltar archivos .flock, .json, .fsnip o .png.', // human
+  drag_drop_hint_tables:
+    'Suelta aquí para abrir el proyecto, importar un fragmento o crear una tabla',
+  drop_unsupported_file_alert_tables:
+    'Solo se pueden soltar archivos .flock, .json, .fsnip, .png, .csv o .txt.',
   unsaved_changes_title_ui: 'Cambios sin guardar', // ai
   unsaved_changes_message_ui:
     'Este proyecto tiene cambios que no se han guardado en un archivo. ¿Qué te gustaría hacer?', // ai

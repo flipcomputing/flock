@@ -668,12 +668,7 @@ class TableEditor {
     const block = this.liveBlock();
     const stillOpen = () => this.block === block && !this.container.hidden && !this.importDialog;
     try {
-      if (!/\.(csv|txt)$/i.test(file.name)) {
-        throw new CsvImportError('table_csv_wrong_type');
-      }
-      if (file.size > CSV_LIMITS.bytes) throw new CsvImportError('table_csv_too_large');
-      const parsed = parseCsv(decodeCsv(await file.arrayBuffer()));
-      if (!parsed.lines.length) throw new CsvImportError('table_csv_empty');
+      const parsed = await parseCsvFile(file);
       if (stillOpen()) this.startImport(file.name, parsed);
     } catch (error) {
       if (!(error instanceof CsvImportError)) console.error('Error reading CSV file:', error);
@@ -681,7 +676,7 @@ class TableEditor {
     }
   }
 
-  startImport(fileName, parsed) {
+  startImport(fileName, parsed, { group = null, onCancel = null } = {}) {
     const block = this.liveBlock();
     const snapshot = saveStartDataSnapshot(block);
     const owner = () => {
@@ -757,7 +752,13 @@ class TableEditor {
       if (!target) return;
       quietly(() => restoreStartDataSnapshot(target, snapshot));
       const table = accept ? shape() : null;
-      const result = table && replaceStartData(target, table.columns, table.rows);
+      const result =
+        table && inEventGroup(group, () => replaceStartData(target, table.columns, table.rows));
+      if (!result && onCancel) {
+        if (restoreFocus) this.close();
+        onCancel({ restoreFocus });
+        return;
+      }
       if (result) this.active = { row: 0, column: 0 };
       this.render();
       if (result) {
@@ -1565,9 +1566,33 @@ class TableEditor {
   }
 }
 
+function inEventGroup(group, action) {
+  if (!group) return action();
+  const outer = Blockly.Events.getGroup();
+  Blockly.Events.setGroup(group);
+  try {
+    return action();
+  } finally {
+    Blockly.Events.setGroup(outer || false);
+  }
+}
+
+export async function parseCsvFile(file) {
+  if (!/\.(csv|txt)$/i.test(file.name)) throw new CsvImportError('table_csv_wrong_type');
+  if (file.size > CSV_LIMITS.bytes) throw new CsvImportError('table_csv_too_large');
+  const parsed = parseCsv(decodeCsv(await file.arrayBuffer()));
+  if (!parsed.lines.length) throw new CsvImportError('table_csv_empty');
+  return parsed;
+}
+
 let editor = null;
 
 export function openTableEditor(block) {
   editor ??= new TableEditor();
   editor.open(block);
+}
+
+export function openTableImport(block, fileName, parsed, options) {
+  openTableEditor(block);
+  editor.startImport(fileName, parsed, options);
 }

@@ -1613,6 +1613,9 @@ export default {
     "Flock XR couldn't load this project. The link may be wrong, or the website may not allow other sites to open its files.",
   drag_drop_hint: 'Drop to open project or import snippet',
   drop_unsupported_file_alert: 'Only .flock, .json, .fsnip, or .png files can be dropped.',
+  drag_drop_hint_tables: 'Drop to open project, import snippet, or create a table',
+  drop_unsupported_file_alert_tables:
+    'Only .flock, .json, .fsnip, .png, .csv, or .txt files can be dropped.',
   unsaved_changes_title_ui: 'Unsaved changes',
   unsaved_changes_message_ui:
     "This project has changes that haven't been saved to a file. What would you like to do?",

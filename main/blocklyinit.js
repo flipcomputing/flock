@@ -652,7 +652,7 @@ export function initializeIfClauseConnectionChecker(workspace) {
   validateIfClausePositions();
 }
 
-function nextFreeVariableName(ws, base) {
+export function nextFreeVariableName(ws, base) {
   const names = ws
     .getVariableMap()
     .getAllVariables()

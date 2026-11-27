@@ -1272,6 +1272,9 @@ export default {
   failed_to_read_file_alert: 'Nie udało się odczytać pliku.',
   drag_drop_hint: 'Upuść, aby otworzyć projekt lub zaimportować fragment',
   drop_unsupported_file_alert: 'Można upuszczać tylko pliki .flock, .json, .fsnip lub .png.',
+  drag_drop_hint_tables: 'Upuść, aby otworzyć projekt, zaimportować fragment lub utworzyć tabelę',
+  drop_unsupported_file_alert_tables:
+    'Można upuszczać tylko pliki .flock, .json, .fsnip, .png, .csv lub .txt.',
 
   // UI status messages
   max_mesh_limit_reached: '⚠️ Osiągnięto limit: możesz mieć tylko {max} obiektów w swoim świecie.',

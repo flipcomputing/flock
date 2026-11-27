@@ -1255,6 +1255,10 @@ export default {
   drag_drop_hint: 'Ablegen, um Projekt zu öffnen oder Snippet zu importieren',
   drop_unsupported_file_alert:
     'Nur .flock-, .json-, .fsnip- oder .png-Dateien können abgelegt werden.',
+  drag_drop_hint_tables:
+    'Ablegen, um Projekt zu öffnen, Snippet zu importieren oder Tabelle zu erstellen',
+  drop_unsupported_file_alert_tables:
+    'Nur .flock-, .json-, .fsnip-, .png-, .csv- oder .txt-Dateien können abgelegt werden.',
 
   // UI status messages
   max_mesh_limit_reached: '⚠️ Limit erreicht: Du kannst nur {max} Objekte in deiner Welt haben.',

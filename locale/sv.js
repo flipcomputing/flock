@@ -1268,6 +1268,9 @@ export default {
   failed_to_read_file_alert: 'Det gick inte att läsa filen.',
   drag_drop_hint: 'Släpp för att öppna projekt eller importera ett utdrag',
   drop_unsupported_file_alert: 'Endast .flock-, .json-, .fsnip- eller .png-filer kan släppas.',
+  drag_drop_hint_tables: 'Släpp för att öppna projekt, importera ett utdrag eller skapa en tabell',
+  drop_unsupported_file_alert_tables:
+    'Endast .flock-, .json-, .fsnip-, .png-, .csv- eller .txt-filer kan släppas.',
 
   // UI status messages
   max_mesh_limit_reached: '⚠️ Gräns nådd: du kan bara ha {max} objekt i din värld.',

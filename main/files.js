@@ -21,6 +21,9 @@ import { setProjectLoading } from './projectLoading.js';
 import { validateBlocklyJson } from './projectJson.js';
 import { DEFAULT_CANVAS_ASPECT, getCanvasAspectName, setCanvasAspectName } from './canvasAspect.js';
 import { autosaveHeld } from './autosaveHold.js';
+import { isProjectLoading } from './projectLoading.js';
+import { isFeatureEnabled } from './features.js';
+import { importTableFile } from '../ui/tableDrop.js';
 
 // Limits applied to every project source — file, drag-and-drop and fetched URL.
 const MAX_PROJECT_FILE_BYTES = 5 * 1024 * 1024;
@@ -781,13 +784,14 @@ function processProjectFileDrop(file, workspace, executeCallback) {
 }
 
 // Private helper: process a dropped snippet or PNG file
-// Set up drag-and-drop for .flock, .json, .fsnip, and .png files
+// Set up drag-and-drop for .flock, .json, .fsnip, .png, and table .csv/.txt files
 export function setupDragAndDrop(workspace, executeCallback) {
   // Create the drop overlay
   const overlay = document.createElement('div');
   overlay.id = 'drag-drop-overlay';
   overlay.setAttribute('aria-hidden', 'true');
-  overlay.textContent = translate('drag_drop_hint');
+  const tables = isFeatureEnabled('dataScience');
+  overlay.textContent = translate(tables ? 'drag_drop_hint_tables' : 'drag_drop_hint');
   document.body.appendChild(overlay);
 
   let dragCounter = 0;
@@ -805,17 +809,27 @@ export function setupDragAndDrop(workspace, executeCallback) {
     return e.dataTransfer?.types && Array.from(e.dataTransfer.types).includes('Files');
   }
 
+  let tableImportPending = false;
+
+  function isBusy() {
+    if (isProjectLoading() || tableImportPending) return true;
+    const modals = 'dialog[open], [aria-modal="true"], [role="dialog"]:not([aria-modal="false"])';
+    return Array.from(document.querySelectorAll(modals)).some(
+      (element) => element.getClientRects().length > 0
+    );
+  }
+
   document.addEventListener('dragenter', (e) => {
     if (!isFileDrag(e)) return;
     e.preventDefault();
     dragCounter++;
-    overlay.classList.add('visible');
+    if (!isBusy()) overlay.classList.add('visible');
   });
 
   document.addEventListener('dragover', (e) => {
     if (!isFileDrag(e)) return;
     e.preventDefault();
-    e.dataTransfer.dropEffect = 'copy';
+    e.dataTransfer.dropEffect = isBusy() ? 'none' : 'copy';
   });
 
   document.addEventListener('dragleave', (e) => {
@@ -835,6 +849,7 @@ export function setupDragAndDrop(workspace, executeCallback) {
 
     e.preventDefault();
     e.stopPropagation();
+    if (isBusy()) return;
 
     const file = files[0];
     const lowerName = file.name.toLowerCase();
@@ -843,8 +858,14 @@ export function setupDragAndDrop(workspace, executeCallback) {
       processProjectFileDrop(file, workspace, executeCallback);
     } else if (lowerName.endsWith('.fsnip') || file.type === 'image/png') {
       importSnippetFile(file);
+    } else if (tables && /\.(csv|txt)$/.test(lowerName)) {
+      tableImportPending = true;
+      importTableFile(file, workspace).finally(() => {
+        tableImportPending = false;
+      });
     } else {
-      alert(translate('drop_unsupported_file_alert'));
+      const key = tables ? 'drop_unsupported_file_alert_tables' : 'drop_unsupported_file_alert';
+      alert(translate(key));
     }
   });
 }

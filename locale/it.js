@@ -1286,6 +1286,10 @@ export default {
   drag_drop_hint: 'Trascina per aprire il progetto o importare un frammento',
   drop_unsupported_file_alert:
     'Solo i file .flock, .json, .fsnip o .png possono essere trascinati.',
+  drag_drop_hint_tables:
+    'Trascina per aprire il progetto, importare un frammento o creare una tabella',
+  drop_unsupported_file_alert_tables:
+    'Solo i file .flock, .json, .fsnip, .png, .csv o .txt possono essere trascinati.',
 
   // UI status messages
   max_mesh_limit_reached: '⚠️ Limite raggiunto: puoi avere solo {max} oggetti nel tuo mondo.',

@@ -1275,6 +1275,9 @@ export default {
   failed_to_read_file_alert: 'Falha ao ler o arquivo.',
   drag_drop_hint: 'Solte para abrir o projeto ou importar um trecho',
   drop_unsupported_file_alert: 'Apenas arquivos .flock, .json, .fsnip ou .png podem ser soltos.',
+  drag_drop_hint_tables: 'Solte para abrir o projeto, importar um trecho ou criar uma tabela',
+  drop_unsupported_file_alert_tables:
+    'Apenas arquivos .flock, .json, .fsnip, .png, .csv ou .txt podem ser soltos.',
 
   // UI status messages
   max_mesh_limit_reached: '⚠️ Limite alcançado: você só pode ter {max} objetos no seu mundo.',

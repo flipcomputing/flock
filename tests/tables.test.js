@@ -30,6 +30,7 @@ import {
   startRows,
 } from '../blocks/tableData.js';
 import { openTableEditor } from '../ui/tableEditor.js';
+import { freeTableName, importTableFile, tableNameFromFile } from '../ui/tableDrop.js';
 import { autosaveHeld } from '../main/autosaveHold.js';
 import {
   BOM,
@@ -2058,6 +2059,127 @@ export function runTablesTests(flock) {
           document.querySelector('.table-editor-import-dialog')?.remove();
           document.querySelector('.table-editor').hidden = true;
         }
+      });
+
+      describe('dropping a table file', function () {
+        const dialog = () => document.querySelector('.table-editor-import-dialog');
+        const dialogButton = (text) =>
+          [...dialog().querySelectorAll('button')].find((each) => each.textContent === text);
+        const towers = () =>
+          new File(['Name,Height\r\nBurj,828\r\nShard,310\r\n'], 'Tall towers.csv');
+        const variableNames = () =>
+          workspace
+            .getVariableMap()
+            .getAllVariables()
+            .map((variable) => variable.name);
+        let originalAlert;
+        let alerts;
+
+        beforeEach(function () {
+          originalAlert = window.alert;
+          alerts = [];
+          window.alert = (message) => alerts.push(message);
+        });
+
+        afterEach(function () {
+          window.alert = originalAlert;
+          dialog()?.dispatchEvent(new Event('cancel', { cancelable: true }));
+          dialog()?.remove();
+          const panel = document.querySelector('.table-editor');
+          if (panel) panel.hidden = true;
+        });
+
+        it('names the table after the file', function () {
+          expect(tableNameFromFile('cities.csv')).to.equal('cities');
+          expect(tableNameFromFile('my_cities.csv')).to.equal('my cities');
+          expect(tableNameFromFile('My data (2).txt')).to.equal('My data 2');
+          expect(tableNameFromFile('  rainfall  __ 2024 .csv')).to.equal('rainfall 2024');
+          expect(tableNameFromFile('2024 sales.csv')).to.equal('2024 sales');
+          expect(tableNameFromFile('données.csv')).to.equal('données');
+          expect(tableNameFromFile('‮evil​name.csv')).to.equal('evil name');
+          expect(tableNameFromFile('<b>.csv')).to.equal('b');
+          expect(tableNameFromFile('.csv')).to.equal('');
+          expect(tableNameFromFile(`${'a'.repeat(40)}.csv`)).to.equal('a'.repeat(30));
+          expect(tableNameFromFile(`${'a'.repeat(29)} b.csv`)).to.equal('a'.repeat(29));
+        });
+
+        it('picks a free name when the file name is taken or unusable', function () {
+          const variables = workspace.getVariableMap();
+          variables.createVariable('My Cities', '');
+          expect(freeTableName(workspace, 'my_cities.csv')).to.equal('my cities 2');
+          variables.createVariable('my cities 2', '');
+          expect(freeTableName(workspace, 'my_cities.csv')).to.equal('my cities 3');
+          expect(freeTableName(workspace, '!!!.csv')).to.equal('table1');
+        });
+
+        it('creates a start block holding a new table and opens the import', async function () {
+          const creator = await importTableFile(towers(), workspace);
+          expect(creator.type).to.equal('table_create');
+          expect(creator.getParent().type).to.equal('start');
+          expect(creator.getField('VAR').getText()).to.equal('Tall towers');
+          expect(dialog().open).to.equal(true);
+          expect(dialog().querySelector('h3').textContent).to.equal('Import Tall towers.csv');
+          expect(autosaveHeld()).to.equal(true);
+          expect(columnTexts(creator)).to.deep.equal(['Name', 'Height']);
+        });
+
+        it('keeps the imported table as one undo step', async function () {
+          const creator = await importTableFile(towers(), workspace);
+          dialogButton('OK').click();
+          expect(autosaveHeld()).to.equal(false);
+          expect(columnTexts(creator)).to.deep.equal(['Name', 'Height']);
+          expect(startRows(creator)).to.deep.equal([
+            ['Burj', 828],
+            ['Shard', 310],
+          ]);
+          await undo();
+          expect(workspace.getAllBlocks(false)).to.deep.equal([]);
+          expect(variableNames()).to.deep.equal([]);
+          workspace.undo(true);
+          await settle();
+          const redone = workspace.getBlocksByType('table_create', false)[0];
+          expect(redone.getParent().type).to.equal('start');
+          expect(startRows(redone)).to.deep.equal([
+            ['Burj', 828],
+            ['Shard', 310],
+          ]);
+        });
+
+        it('removes the new blocks without a trace when cancelled', async function () {
+          load({ columns: ['Name'], rows: [['Old']] }, 'Name');
+          const existing = workspace.getAllBlocks(false).length;
+          const creator = workspace.getBlocksByType('table_create', false)[0];
+          setStartCell(creator, 0, 0, 'Changed');
+          await undo();
+          const redo = workspace.getRedoStack().length;
+          expect(redo).to.be.above(0);
+
+          await importTableFile(towers(), workspace);
+          dialogButton('Cancel').click();
+          expect(dialog()).to.equal(null);
+          expect(autosaveHeld()).to.equal(false);
+          expect(document.querySelector('.table-editor').hidden).to.equal(true);
+          expect(workspace.getAllBlocks(false).length).to.equal(existing);
+          expect(variableNames()).to.deep.equal(['Buildings']);
+          expect(workspace.getUndoStack().length).to.equal(0);
+          expect(workspace.getRedoStack().length).to.equal(redo);
+        });
+
+        it('removes the new blocks when another table is opened during the import', async function () {
+          await importTableFile(towers(), workspace);
+          const other = workspace.newBlock('table_create');
+          openTableEditor(other);
+          expect(dialog()).to.equal(null);
+          expect(workspace.getAllBlocks(false)).to.deep.equal([other]);
+        });
+
+        it('creates nothing when the file cannot be read', async function () {
+          const result = await importTableFile(new File([''], 'empty.csv'), workspace);
+          expect(result).to.equal(null);
+          expect(alerts).to.deep.equal([enLocale.table_csv_empty]);
+          expect(workspace.getAllBlocks(false)).to.deep.equal([]);
+          expect(dialog()).to.equal(null);
+        });
       });
 
       it('offers CSV export in the editor only when the table has columns', function () {
