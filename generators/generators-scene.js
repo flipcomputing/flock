@@ -48,22 +48,20 @@ export function registerSceneGenerators(javascriptGenerator) {
   };
   // Map with material ------------------------------------------------
   javascriptGenerator.forBlock['create_map'] = function (block) {
-    const mapName = block.getFieldValue('MAP_NAME');
+    const map =
+      javascriptGenerator.valueToCode(block, 'MAP', javascriptGenerator.ORDER_NONE) || '"NONE"';
     const material =
       javascriptGenerator.valueToCode(block, 'MATERIAL', javascriptGenerator.ORDER_NONE) || 'null';
     const meshId = 'ground';
     meshMap[meshId] = block;
     meshBlockIdMap[meshId] = block.id;
-    return `createMap(${JSON.stringify(mapName)}, ${material});\n`;
+    const source = block.getInputTargetBlock('MAP');
+    const fromTable = source && source.type !== 'map_name';
+    return `${fromTable ? 'createMapFromTable' : 'createMap'}(${map}, ${material});\n`;
   };
 
-  javascriptGenerator.forBlock['create_map_table'] = function (block) {
-    const table = javascriptGenerator.getVariableName(block.getFieldValue('TABLE'));
-    const material =
-      javascriptGenerator.valueToCode(block, 'MATERIAL', javascriptGenerator.ORDER_NONE) || 'null';
-    meshMap['ground'] = block;
-    meshBlockIdMap['ground'] = block.id;
-    return `createMapFromTable(${table}, ${material});\n`;
+  javascriptGenerator.forBlock['map_name'] = function (block) {
+    return [JSON.stringify(block.getFieldValue('MAP_NAME')), javascriptGenerator.ORDER_ATOMIC];
   };
 
   // Background -------------------------------------------------------

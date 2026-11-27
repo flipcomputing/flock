@@ -84,10 +84,8 @@ let blocklyJson = {
           block: {
             type: 'create_map',
             id: '3/Yv3OmTYjP/!Njv1iq$',
-            fields: {
-              MAP_NAME: 'NONE',
-            },
             inputs: {
+              MAP: { shadow: { type: 'map_name', fields: { MAP_NAME: 'NONE' } } },
               MATERIAL: {
                 shadow: {
                   type: 'material',

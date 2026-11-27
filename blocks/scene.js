@@ -14,7 +14,6 @@ import { isProjectLoading } from '../main/projectLoading.js';
 import { nextVariableName } from './variableNames.js';
 import { isInsideProcedureDefinition } from './variableScope.js';
 import { mapNames } from '../config.js';
-import { TABLE_FIELD } from './tables.js';
 import { updateOrCreateMeshFromBlock, watchCloneSources } from '../ui/blockmesh.js';
 import { addInitialTransformRows, defineSameNumberBlock } from './initialTransformRows.js';
 import { translate, getTooltip, getOption } from '../main/translation.js';
@@ -381,6 +380,7 @@ export function respawnMaterialShadow(mapBlock) {
 function attachCreateMapOnChange(block) {
   const ws = block.workspace;
   const touches = makeTouchesInputSubtree(block, ws, 'MATERIAL');
+  const touchesMap = makeTouchesInputSubtree(block, ws, 'MAP');
 
   registerBlockHandler(block, (changeEvent) => {
     const eventTypes = [
@@ -394,6 +394,7 @@ function attachCreateMapOnChange(block) {
     const relevant =
       wasBlockDeleted(changeEvent, block.id) ||
       changeEventHitsTouches(changeEvent, touches) ||
+      changeEventHitsTouches(changeEvent, touchesMap) ||
       (changeEvent.type === Blockly.Events.BLOCK_CREATE && changeEvent.blockId === block.id) ||
       (changeEvent.type === Blockly.Events.BLOCK_MOVE &&
         changeEvent.oldParentId === block.id &&
@@ -456,7 +457,7 @@ export function defineSceneBlocks() {
   Blockly.Blocks['create_map'] = {
     init: function () {
       const args0 = [
-        ...buildMapNameDropdownArgs(),
+        buildInputValueArg({ name: 'MAP', check: ['MapName', 'Table'] }),
         buildInputValueArg({
           name: 'MATERIAL',
           check: ['Material', 'Array', 'Colour', 'material_like', 'colour_array'],
@@ -468,18 +469,17 @@ export function defineSceneBlocks() {
     },
   };
 
-  Blockly.Blocks['create_map_table'] = {
+  Blockly.Blocks['map_name'] = {
     init: function () {
-      const args0 = [
-        { type: TABLE_FIELD, name: 'TABLE', variable: 'table1' },
-        buildInputValueArg({
-          name: 'MATERIAL',
-          check: ['Material', 'Array', 'Colour', 'material_like', 'colour_array'],
-        }),
-      ];
-
-      initSceneJsonBlock(this, { type: 'create_map_table', args0 });
-      attachCreateMapOnChange(this);
+      this.jsonInit({
+        type: 'map_name',
+        message0: '%1',
+        args0: buildMapNameDropdownArgs(),
+        output: 'MapName',
+        colour: categoryColours['Scene'],
+        tooltip: getTooltip('create_map'),
+      });
+      this.setStyle('scene_blocks');
     },
   };
 

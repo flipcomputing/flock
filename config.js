@@ -371,8 +371,6 @@ export const modelAnimations = {
 
 export const modelAnimationNames = Object.keys(modelAnimations);
 
-export const MAP_BLOCK_TYPES = new Set(['create_map', 'create_map_table']);
-
 export function mapNames() {
   return [
     getDropdownOption('circular_depression.png'),

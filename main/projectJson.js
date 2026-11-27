@@ -88,10 +88,21 @@ export function validateBlocklyJson(json) {
     block.inputs = { VALUE: { block: { type: 'text_material', inputs } } };
   }
 
+  const mapShadow = (name) => ({ shadow: { type: 'map_name', fields: { MAP_NAME: name } } });
+
+  // Maps chose their image with a field; now a map name or a table plugs into MAP.
+  function upgradeMapInput(block) {
+    if (block.type !== 'create_map' || !block.fields || !('MAP_NAME' in block.fields)) return;
+    block.inputs = { ...block.inputs, MAP: block.inputs?.MAP ?? mapShadow(block.fields.MAP_NAME) };
+    delete block.fields.MAP_NAME;
+    if (Object.keys(block.fields).length === 0) delete block.fields;
+  }
+
   function upgradeLegacyBlocks(block) {
     if (!block || typeof block !== 'object') return;
 
     upgradeTextMaterialStatement(block);
+    upgradeMapInput(block);
     upgradeMoveUseY(block);
     upgradeMoveToOffsets(block);
     upgradeFollowPosition(block);

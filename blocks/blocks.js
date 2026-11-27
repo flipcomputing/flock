@@ -5,7 +5,6 @@ import { ScrollBlockDragger, ScrollMetricsManager } from '@blockly/plugin-scroll
 import { toolbox, categoryColours } from '../toolbox.js';
 import { translate, getTooltip, getDropdownOption, getOption } from '../main/translation.js';
 import { flock } from '../flock.js';
-import { MAP_BLOCK_TYPES } from '../config.js';
 
 import {
   deleteMeshFromBlock,
@@ -610,16 +609,13 @@ export function handleBlockDelete(event) {
         blockJson.type === 'procedures_callprefab'
       ) {
         deleteMeshFromBlock(blockJson.id);
-        if (MAP_BLOCK_TYPES.has(blockJson.type)) {
+        if (blockJson.type === 'create_map') {
           const ws = Blockly.getMainWorkspace();
           const nextMapBlock = ws
             ?.getAllBlocks(false)
             .find(
               (b) =>
-                MAP_BLOCK_TYPES.has(b.type) &&
-                b.id !== blockJson.id &&
-                b.isEnabled() &&
-                b.getParent()
+                b.type === 'create_map' && b.id !== blockJson.id && b.isEnabled() && b.getParent()
             );
           if (nextMapBlock)
             updateOrCreateMeshFromBlock(nextMapBlock, makeRestoreEvent(nextMapBlock));

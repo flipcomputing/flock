@@ -137,7 +137,6 @@ export default {
   create_ground: 'ground %1',
   set_background_color: 'background %1',
   create_map: 'map %1 with %2',
-  create_map_table: 'map from table %1 with %2',
   show: 'show %1',
   hide: 'hide %1',
   dispose: 'dispose %1',
@@ -547,8 +546,6 @@ export default {
   create_ground_tooltip: 'Add a ground plane with collisions enabled to the scene.',
   set_background_color_tooltip: "Set the scene's background color.",
   create_map_tooltip: 'Create a map with the selected name and material.',
-  create_map_table_tooltip:
-    'Make the ground from a table of numbers. Each number is the height of one square.',
   show_tooltip: 'Show the selected object.',
   hide_tooltip: 'Hide the selected object.',
   dispose_tooltip: 'Remove the specified object from the scene.',

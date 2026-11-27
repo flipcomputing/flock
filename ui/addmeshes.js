@@ -15,6 +15,7 @@ import {
   readNumberOrList,
   deleteMeshFromBlock,
   hasComputedValue,
+  mapSourceFromBlock,
 } from './blockmesh.js';
 
 export function createMeshOnCanvas(block) {
@@ -83,13 +84,7 @@ export function createMeshOnCanvas(block) {
   let position, scale, color, modelName, newMesh;
 
   if (
-    ![
-      'set_sky_color',
-      'set_background_color',
-      'create_ground',
-      'create_map',
-      'create_map_table',
-    ].includes(block.type)
+    !['set_sky_color', 'set_background_color', 'create_ground', 'create_map'].includes(block.type)
   ) {
     // Helper function to safely get position value
     function getPositionValue(inputName, defaultValue = 0) {
@@ -162,7 +157,8 @@ export function createMeshOnCanvas(block) {
       meshMap[meshId] = block;
       meshBlockIdMap[meshId] = block.id;
 
-      const mapName = block.getFieldValue('MAP_NAME') || 'NONE';
+      const mapName = mapSourceFromBlock(block);
+      if (mapName === null) break;
       const materialBlock = block.getInputTargetBlock('MATERIAL');
 
       let textureSet, baseColor, alpha, scale, angle;

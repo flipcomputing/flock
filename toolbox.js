@@ -1499,6 +1499,7 @@ const toolboxScene = {
       type: 'create_map',
       keyword: 'map',
       inputs: {
+        MAP: { shadow: { type: 'map_name', fields: { MAP_NAME: 'NONE' } } },
         MATERIAL: {
           shadow: {
             type: 'material',
@@ -1516,25 +1517,6 @@ const toolboxScene = {
         },
       },
     },
-    ...(isFeatureEnabled('dataScience')
-      ? [
-          {
-            kind: 'block',
-            type: 'create_map_table',
-            keyword: 'terrain',
-            inputs: {
-              MATERIAL: {
-                shadow: {
-                  type: 'material',
-                  inputs: {
-                    BASE_COLOR: { shadow: { type: 'colour', fields: { COLOR: '#71BC78' } } },
-                  },
-                },
-              },
-            },
-          },
-        ]
-      : []),
     {
       kind: 'block',
       type: 'set_background_color',
@@ -7727,10 +7709,8 @@ const toolboxSnippets = {
                                   }*/
               block: {
                 type: 'create_map',
-                fields: {
-                  MAP_NAME: 'NONE',
-                },
                 inputs: {
+                  MAP: { shadow: { type: 'map_name', fields: { MAP_NAME: 'NONE' } } },
                   MATERIAL: {
                     shadow: {
                       type: 'material',

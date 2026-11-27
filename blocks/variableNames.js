@@ -1,7 +1,7 @@
 import * as Blockly from 'blockly';
 import { isProjectLoading } from '../main/projectLoading.js';
 
-const NON_OBJECT_TYPES = new Set(['create_ground', 'create_map', 'create_map_table']);
+const NON_OBJECT_TYPES = new Set(['create_ground', 'create_map']);
 const OBJECT_NAME_FIELDS = {
   clone_mesh: 'CLONE_VAR',
   merge_meshes: 'RESULT_VAR',

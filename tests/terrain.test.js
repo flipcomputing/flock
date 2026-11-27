@@ -4,6 +4,8 @@ import { compileFlockProject } from './utils/flockCompilerTestUtils.js';
 import { terrainGrid, terrainHeightAt, terrainLayout } from '../api/terrain.js';
 import { defineTableBlocks, tableStartRows } from '../blocks/tables.js';
 import { defineSceneBlocks } from '../blocks/scene.js';
+import { mapSourceFromBlock } from '../ui/blockmesh.js';
+import { validateBlocklyJson } from '../main/projectJson.js';
 
 const text = (TEXT) => ({ shadow: { type: 'text', fields: { TEXT } } });
 const list = (...items) => ({
@@ -26,10 +28,17 @@ const createHills = (rows) => ({
   inputs: { COLUMNS: list(text('a'), text('b'), text('c')) },
   extraState: { columns: ['a', 'b', 'c'], rows },
 });
+const mapMenu = (name = 'NONE') => ({ shadow: { type: 'map_name', fields: { MAP_NAME: name } } });
+const mapNamed = (name) => ({
+  type: 'create_map',
+  inputs: { MAP: mapMenu(name), MATERIAL: green },
+});
 const mapFromHills = () => ({
-  type: 'create_map_table',
-  fields: { TABLE: { name: 'Hills' } },
-  inputs: { MATERIAL: green },
+  type: 'create_map',
+  inputs: {
+    MAP: { ...mapMenu(), block: { type: 'table_get', fields: { TABLE: { name: 'Hills' } } } },
+    MATERIAL: green,
+  },
 });
 
 const project = (...stack) => ({
@@ -192,7 +201,7 @@ export function runTerrainTests(flock) {
 
       before(function () {
         if (!Blockly.Blocks.table_create) defineTableBlocks();
-        if (!Blockly.Blocks.create_map_table) defineSceneBlocks();
+        if (!Blockly.Blocks.map_name) defineSceneBlocks();
       });
 
       beforeEach(function () {
@@ -203,18 +212,66 @@ export function runTerrainTests(flock) {
         workspace.dispose();
       });
 
+      const load = (...stack) =>
+        Blockly.serialization.workspaces.load(project(...stack), workspace);
+      const mapBlock = () => workspace.getBlocksByType('create_map', false)[0];
+
       it("reads the start data of the table's create block", function () {
-        Blockly.serialization.workspaces.load(
-          project(createHills(HILL), mapFromHills()),
-          workspace
-        );
-        const map = workspace.getBlocksByType('create_map_table', false)[0];
-        expect(tableStartRows(map)).to.deep.equal(HILL);
+        load(createHills(HILL), mapFromHills());
+        const reporter = workspace.getBlocksByType('table_get', false)[0];
+        expect(tableStartRows(reporter)).to.deep.equal(HILL);
       });
 
-      it('generates a createMapFromTable call', function () {
+      it('previews a plugged-in table from its start data', function () {
+        load(createHills(HILL), mapFromHills());
+        expect(mapSourceFromBlock(mapBlock())).to.deep.equal({ grid: terrainGrid(HILL) });
+      });
+
+      it('previews the chosen map image from the menu', function () {
+        load(mapNamed('mountains.png'));
+        expect(mapSourceFromBlock(mapBlock())).to.equal('mountains.png');
+      });
+
+      it('generates a createMapFromTable call for a table', function () {
         const code = compileFlockProject(project(createHills(HILL), mapFromHills()));
         expect(code).to.match(/createMapFromTable\(\w+, /);
+      });
+
+      it('generates a createMapFromTable call for a variable holding a table', function () {
+        const code = compileFlockProject(
+          project(createHills(HILL), {
+            type: 'create_map',
+            inputs: {
+              MAP: {
+                ...mapMenu(),
+                block: { type: 'variables_get', fields: { VAR: { name: 'land' } } },
+              },
+              MATERIAL: green,
+            },
+          })
+        );
+        expect(code).to.match(/createMapFromTable\(land\w*, /);
+      });
+
+      it('generates a createMap call for a map from the menu', function () {
+        const code = compileFlockProject(project(mapNamed('mountains.png')));
+        expect(code).to.include('createMap("mountains.png", ');
+      });
+    });
+
+    describe('loading older projects', function () {
+      const upgrade = (block) =>
+        validateBlocklyJson(project(block)).blocks.blocks[0].inputs.DO.block;
+
+      it('moves the map name from a field into a map menu', function () {
+        const map = upgrade({
+          type: 'create_map',
+          fields: { MAP_NAME: 'mountains.png' },
+          inputs: { MATERIAL: green },
+        });
+        expect(map.fields).to.equal(undefined);
+        expect(map.inputs.MAP).to.deep.equal(mapMenu('mountains.png'));
+        expect(map.inputs.MATERIAL).to.deep.equal(green);
       });
     });
 
