@@ -936,6 +936,46 @@ export function runShapesTests(flock) {
         expect(mesh.position.y).to.be.closeTo(7, 1e-6);
       });
 
+      it('should apply a text material', function () {
+        const id = flock.createPlane('testPlaneText', {
+          color: {
+            text: 'Fe',
+            color: '#000000',
+            background: '#ff0000',
+            alpha: 1,
+            scale: 1,
+            angle: 0,
+          },
+          width: 1,
+          height: 1,
+          position: [0, 0, 0],
+        });
+        createdIds.push(id);
+
+        const material = flock.scene.getMeshByName(id).material;
+        expect(material.metadata.textParams.text).to.equal('Fe');
+        expect(material.diffuseTexture).to.be.instanceOf(flock.BABYLON.DynamicTexture);
+      });
+
+      it('should tile from the edge, right to left as seen from the front', function () {
+        const id = flock.createPlane('testPlaneUVs', {
+          color: '#cc0044',
+          width: 2,
+          height: 1,
+          position: [0, 0, 0],
+        });
+        createdIds.push(id);
+
+        const mesh = flock.scene.getMeshByName(id);
+        const positions = mesh.getVerticesData(flock.BABYLON.VertexBuffer.PositionKind);
+        const uvs = mesh.getVerticesData(flock.BABYLON.VertexBuffer.UVKind);
+        for (let i = 0; i < positions.length / 3; i++) {
+          const [x, y] = [positions[i * 3], positions[i * 3 + 1]];
+          expect(uvs[i * 2]).to.be.closeTo(x < 0 ? 0.5 : 0, 1e-6);
+          expect(uvs[i * 2 + 1]).to.be.closeTo(y < 0 ? 0 : 0.25, 1e-6);
+        }
+      });
+
       it('should keep the base rule for non-plane shapes', function () {
         const id = flock.createBox('testBoxBaseRule', {
           width: 2,

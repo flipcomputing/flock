@@ -1435,6 +1435,7 @@ export const flockShapes = {
       },
       flock.scene
     );
+    flock.setSizeBasedPlaneUVs(newPlane, width, height);
 
     newPlane.metadata = newPlane.metadata || {};
     newPlane.metadata.shape = 'plane';

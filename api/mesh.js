@@ -1263,21 +1263,14 @@ export const flockMesh = {
     // geometry were baked to its scaled (world) size, so textures don't stretch.
     const sx = scale ? Math.abs(scale.x) : 1;
     const sy = scale ? Math.abs(scale.y) : 1;
-    const sz = scale ? Math.abs(scale.z) : 1;
 
+    // Edge-aligned like box faces, with U running right to left as seen from
+    // the front so text tiles read the right way round.
     for (let i = 0; i < positions.length / 3; i++) {
-      const position = new flock.BABYLON.Vector3(
-        positions[i * 3] * sx,
-        positions[i * 3 + 1] * sy,
-        positions[i * 3 + 2] * sz
-      );
-
-      // Calculate UV coordinates based on the physical size of the texture
-      const u = (position.x / width) * (width / texturePhysicalSize) + 0.5; // Scale proportionally to width
-      const v = (position.y / height) * (height / texturePhysicalSize) + 0.5; // Scale proportionally to height
-
-      uvs[i * 2] = u;
-      uvs[i * 2 + 1] = v;
+      const x = positions[i * 3] * sx;
+      const y = positions[i * 3 + 1] * sy;
+      uvs[i * 2] = (width / 2 - x) / texturePhysicalSize;
+      uvs[i * 2 + 1] = (y + height / 2) / texturePhysicalSize;
     }
 
     // Apply updated UV mapping

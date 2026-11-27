@@ -2013,6 +2013,10 @@ export const flockMaterial = {
     flock.disposeOldMaterial(oldMat, [mesh]);
   },
   getOrCreateMaterial(colorInput, alpha = 1, { cached = true } = {}) {
+    if (isTextDescriptor(colorInput?.color)) {
+      const inner = colorInput.color;
+      colorInput = { ...inner, alpha: inner.alpha ?? colorInput.alpha };
+    }
     if (isTextDescriptor(colorInput)) {
       return flock.getOrCreateTextMaterial(readTextParams(colorInput, alpha), { cached });
     }

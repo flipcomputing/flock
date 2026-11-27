@@ -2625,6 +2625,21 @@ export function runMaterialsTests(flock) {
       });
     }
 
+    it('uses the outer alpha for wrapped text that has none of its own', function () {
+      const outer = flock.getOrCreateMaterial({ color: { text: 'W' }, alpha: 0.2 }, 1, {
+        cached: false,
+      });
+      const inner = flock.getOrCreateMaterial(
+        { color: letter('W', { alpha: 0.6 }), alpha: 0.2 },
+        1,
+        { cached: false }
+      );
+      expect(outer.metadata.textParams.alpha).to.be.closeTo(0.2, 1e-6);
+      expect(inner.metadata.textParams.alpha).to.be.closeTo(0.6, 1e-6);
+      outer.dispose(false, true);
+      inner.dispose(false, true);
+    });
+
     it('fades the background but keeps the text solid', function () {
       const material = flock.getOrCreateMaterial(letter('I', { alpha: 0.5 }), 1, {
         cached: false,
