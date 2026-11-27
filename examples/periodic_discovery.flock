@@ -1,0 +1,3340 @@
+{
+  "version": "2.0.0",
+  "blocks": {
+    "languageVersion": 0,
+    "blocks": [
+      {
+        "type": "start",
+        "id": "start-pt-0013",
+        "x": 10,
+        "y": 10,
+        "inputs": {
+          "DO": {
+            "block": {
+              "type": "comment",
+              "id": "comment-pt-0011",
+              "inputs": {
+                "COMMENT": {
+                  "shadow": {
+                    "type": "text_multiline",
+                    "id": "ml-pt-0012",
+                    "fields": {
+                      "TEXT": "Data source: element numbers, symbols, names, discovery years, families and colours are from the PubChem Periodic Table, National Library of Medicine (NLM), https://pubchem.ncbi.nlm.nih.gov/periodic-table/. Group and Period come from where each element sits in the periodic table. Palladium's colour had its leading zeros put back."
+                    }
+                  }
+                }
+              },
+              "next": {
+                "block": {
+                  "type": "table_create",
+                  "id": "table-pt-0001",
+                  "fields": {
+                    "VAR": {
+                      "id": "tbl-Elements-0001"
+                    }
+                  },
+                  "inputs": {
+                    "COLUMNS": {
+                      "block": {
+                        "type": "lists_create_with",
+                        "id": "cols-pt-0002",
+                        "inline": true,
+                        "extraState": {
+                          "itemCount": 8
+                        },
+                        "inputs": {
+                          "ADD0": {
+                            "shadow": {
+                              "type": "text",
+                              "id": "text-pt-0003",
+                              "fields": {
+                                "TEXT": "Number"
+                              }
+                            }
+                          },
+                          "ADD1": {
+                            "shadow": {
+                              "type": "text",
+                              "id": "text-pt-0004",
+                              "fields": {
+                                "TEXT": "Symbol"
+                              }
+                            }
+                          },
+                          "ADD2": {
+                            "shadow": {
+                              "type": "text",
+                              "id": "text-pt-0005",
+                              "fields": {
+                                "TEXT": "Name"
+                              }
+                            }
+                          },
+                          "ADD3": {
+                            "shadow": {
+                              "type": "text",
+                              "id": "text-pt-0006",
+                              "fields": {
+                                "TEXT": "Year"
+                              }
+                            }
+                          },
+                          "ADD4": {
+                            "shadow": {
+                              "type": "text",
+                              "id": "text-pt-0007",
+                              "fields": {
+                                "TEXT": "Group"
+                              }
+                            }
+                          },
+                          "ADD5": {
+                            "shadow": {
+                              "type": "text",
+                              "id": "text-pt-0008",
+                              "fields": {
+                                "TEXT": "Period"
+                              }
+                            }
+                          },
+                          "ADD6": {
+                            "shadow": {
+                              "type": "text",
+                              "id": "text-pt-0009",
+                              "fields": {
+                                "TEXT": "Family"
+                              }
+                            }
+                          },
+                          "ADD7": {
+                            "shadow": {
+                              "type": "text",
+                              "id": "text-pt-0010",
+                              "fields": {
+                                "TEXT": "Colour"
+                              }
+                            }
+                          }
+                        }
+                      }
+                    }
+                  },
+                  "extraState": {
+                    "columns": [
+                      "Number",
+                      "Symbol",
+                      "Name",
+                      "Year",
+                      "Group",
+                      "Period",
+                      "Family",
+                      "Colour"
+                    ],
+                    "rows": [
+                      [
+                        1,
+                        "H",
+                        "Hydrogen",
+                        1766,
+                        1,
+                        1,
+                        "Nonmetal",
+                        "#ffffff"
+                      ],
+                      [
+                        2,
+                        "He",
+                        "Helium",
+                        1868,
+                        18,
+                        1,
+                        "Noble gas",
+                        "#d9ffff"
+                      ],
+                      [
+                        3,
+                        "Li",
+                        "Lithium",
+                        1817,
+                        1,
+                        2,
+                        "Alkali metal",
+                        "#cc80ff"
+                      ],
+                      [
+                        4,
+                        "Be",
+                        "Beryllium",
+                        1798,
+                        2,
+                        2,
+                        "Alkaline earth metal",
+                        "#c2ff00"
+                      ],
+                      [
+                        5,
+                        "B",
+                        "Boron",
+                        1808,
+                        13,
+                        2,
+                        "Metalloid",
+                        "#ffb5b5"
+                      ],
+                      [
+                        6,
+                        "C",
+                        "Carbon",
+                        "",
+                        14,
+                        2,
+                        "Nonmetal",
+                        "#909090"
+                      ],
+                      [
+                        7,
+                        "N",
+                        "Nitrogen",
+                        1772,
+                        15,
+                        2,
+                        "Nonmetal",
+                        "#3050f8"
+                      ],
+                      [
+                        8,
+                        "O",
+                        "Oxygen",
+                        1774,
+                        16,
+                        2,
+                        "Nonmetal",
+                        "#ff0d0d"
+                      ],
+                      [
+                        9,
+                        "F",
+                        "Fluorine",
+                        1670,
+                        17,
+                        2,
+                        "Halogen",
+                        "#90e050"
+                      ],
+                      [
+                        10,
+                        "Ne",
+                        "Neon",
+                        1898,
+                        18,
+                        2,
+                        "Noble gas",
+                        "#b3e3f5"
+                      ],
+                      [
+                        11,
+                        "Na",
+                        "Sodium",
+                        1807,
+                        1,
+                        3,
+                        "Alkali metal",
+                        "#ab5cf2"
+                      ],
+                      [
+                        12,
+                        "Mg",
+                        "Magnesium",
+                        1808,
+                        2,
+                        3,
+                        "Alkaline earth metal",
+                        "#8aff00"
+                      ],
+                      [
+                        13,
+                        "Al",
+                        "Aluminum",
+                        "",
+                        13,
+                        3,
+                        "Post-transition metal",
+                        "#bfa6a6"
+                      ],
+                      [
+                        14,
+                        "Si",
+                        "Silicon",
+                        1854,
+                        14,
+                        3,
+                        "Metalloid",
+                        "#f0c8a0"
+                      ],
+                      [
+                        15,
+                        "P",
+                        "Phosphorus",
+                        1669,
+                        15,
+                        3,
+                        "Nonmetal",
+                        "#ff8000"
+                      ],
+                      [
+                        16,
+                        "S",
+                        "Sulfur",
+                        "",
+                        16,
+                        3,
+                        "Nonmetal",
+                        "#ffff30"
+                      ],
+                      [
+                        17,
+                        "Cl",
+                        "Chlorine",
+                        1774,
+                        17,
+                        3,
+                        "Halogen",
+                        "#1ff01f"
+                      ],
+                      [
+                        18,
+                        "Ar",
+                        "Argon",
+                        1894,
+                        18,
+                        3,
+                        "Noble gas",
+                        "#80d1e3"
+                      ],
+                      [
+                        19,
+                        "K",
+                        "Potassium",
+                        1807,
+                        1,
+                        4,
+                        "Alkali metal",
+                        "#8f40d4"
+                      ],
+                      [
+                        20,
+                        "Ca",
+                        "Calcium",
+                        "",
+                        2,
+                        4,
+                        "Alkaline earth metal",
+                        "#3dff00"
+                      ],
+                      [
+                        21,
+                        "Sc",
+                        "Scandium",
+                        1879,
+                        3,
+                        4,
+                        "Transition metal",
+                        "#e6e6e6"
+                      ],
+                      [
+                        22,
+                        "Ti",
+                        "Titanium",
+                        1791,
+                        4,
+                        4,
+                        "Transition metal",
+                        "#bfc2c7"
+                      ],
+                      [
+                        23,
+                        "V",
+                        "Vanadium",
+                        1801,
+                        5,
+                        4,
+                        "Transition metal",
+                        "#a6a6ab"
+                      ],
+                      [
+                        24,
+                        "Cr",
+                        "Chromium",
+                        1797,
+                        6,
+                        4,
+                        "Transition metal",
+                        "#8a99c7"
+                      ],
+                      [
+                        25,
+                        "Mn",
+                        "Manganese",
+                        1774,
+                        7,
+                        4,
+                        "Transition metal",
+                        "#9c7ac7"
+                      ],
+                      [
+                        26,
+                        "Fe",
+                        "Iron",
+                        "",
+                        8,
+                        4,
+                        "Transition metal",
+                        "#e06633"
+                      ],
+                      [
+                        27,
+                        "Co",
+                        "Cobalt",
+                        1735,
+                        9,
+                        4,
+                        "Transition metal",
+                        "#f090a0"
+                      ],
+                      [
+                        28,
+                        "Ni",
+                        "Nickel",
+                        1751,
+                        10,
+                        4,
+                        "Transition metal",
+                        "#50d050"
+                      ],
+                      [
+                        29,
+                        "Cu",
+                        "Copper",
+                        "",
+                        11,
+                        4,
+                        "Transition metal",
+                        "#c88033"
+                      ],
+                      [
+                        30,
+                        "Zn",
+                        "Zinc",
+                        1746,
+                        12,
+                        4,
+                        "Transition metal",
+                        "#7d80b0"
+                      ],
+                      [
+                        31,
+                        "Ga",
+                        "Gallium",
+                        1875,
+                        13,
+                        4,
+                        "Post-transition metal",
+                        "#c28f8f"
+                      ],
+                      [
+                        32,
+                        "Ge",
+                        "Germanium",
+                        1886,
+                        14,
+                        4,
+                        "Metalloid",
+                        "#668f8f"
+                      ],
+                      [
+                        33,
+                        "As",
+                        "Arsenic",
+                        "",
+                        15,
+                        4,
+                        "Metalloid",
+                        "#bd80e3"
+                      ],
+                      [
+                        34,
+                        "Se",
+                        "Selenium",
+                        1817,
+                        16,
+                        4,
+                        "Nonmetal",
+                        "#ffa100"
+                      ],
+                      [
+                        35,
+                        "Br",
+                        "Bromine",
+                        1826,
+                        17,
+                        4,
+                        "Halogen",
+                        "#a62929"
+                      ],
+                      [
+                        36,
+                        "Kr",
+                        "Krypton",
+                        1898,
+                        18,
+                        4,
+                        "Noble gas",
+                        "#5cb8d1"
+                      ],
+                      [
+                        37,
+                        "Rb",
+                        "Rubidium",
+                        1861,
+                        1,
+                        5,
+                        "Alkali metal",
+                        "#702eb0"
+                      ],
+                      [
+                        38,
+                        "Sr",
+                        "Strontium",
+                        1790,
+                        2,
+                        5,
+                        "Alkaline earth metal",
+                        "#00ff00"
+                      ],
+                      [
+                        39,
+                        "Y",
+                        "Yttrium",
+                        1794,
+                        3,
+                        5,
+                        "Transition metal",
+                        "#94ffff"
+                      ],
+                      [
+                        40,
+                        "Zr",
+                        "Zirconium",
+                        1789,
+                        4,
+                        5,
+                        "Transition metal",
+                        "#94e0e0"
+                      ],
+                      [
+                        41,
+                        "Nb",
+                        "Niobium",
+                        1801,
+                        5,
+                        5,
+                        "Transition metal",
+                        "#73c2c9"
+                      ],
+                      [
+                        42,
+                        "Mo",
+                        "Molybdenum",
+                        1778,
+                        6,
+                        5,
+                        "Transition metal",
+                        "#54b5b5"
+                      ],
+                      [
+                        43,
+                        "Tc",
+                        "Technetium",
+                        1937,
+                        7,
+                        5,
+                        "Transition metal",
+                        "#3b9e9e"
+                      ],
+                      [
+                        44,
+                        "Ru",
+                        "Ruthenium",
+                        1827,
+                        8,
+                        5,
+                        "Transition metal",
+                        "#248f8f"
+                      ],
+                      [
+                        45,
+                        "Rh",
+                        "Rhodium",
+                        1803,
+                        9,
+                        5,
+                        "Transition metal",
+                        "#0a7d8c"
+                      ],
+                      [
+                        46,
+                        "Pd",
+                        "Palladium",
+                        1803,
+                        10,
+                        5,
+                        "Transition metal",
+                        "#006985"
+                      ],
+                      [
+                        47,
+                        "Ag",
+                        "Silver",
+                        "",
+                        11,
+                        5,
+                        "Transition metal",
+                        "#c0c0c0"
+                      ],
+                      [
+                        48,
+                        "Cd",
+                        "Cadmium",
+                        1817,
+                        12,
+                        5,
+                        "Transition metal",
+                        "#ffd98f"
+                      ],
+                      [
+                        49,
+                        "In",
+                        "Indium",
+                        1863,
+                        13,
+                        5,
+                        "Post-transition metal",
+                        "#a67573"
+                      ],
+                      [
+                        50,
+                        "Sn",
+                        "Tin",
+                        "",
+                        14,
+                        5,
+                        "Post-transition metal",
+                        "#668080"
+                      ],
+                      [
+                        51,
+                        "Sb",
+                        "Antimony",
+                        "",
+                        15,
+                        5,
+                        "Metalloid",
+                        "#9e63b5"
+                      ],
+                      [
+                        52,
+                        "Te",
+                        "Tellurium",
+                        1782,
+                        16,
+                        5,
+                        "Metalloid",
+                        "#d47a00"
+                      ],
+                      [
+                        53,
+                        "I",
+                        "Iodine",
+                        1811,
+                        17,
+                        5,
+                        "Halogen",
+                        "#940094"
+                      ],
+                      [
+                        54,
+                        "Xe",
+                        "Xenon",
+                        1898,
+                        18,
+                        5,
+                        "Noble gas",
+                        "#429eb0"
+                      ],
+                      [
+                        55,
+                        "Cs",
+                        "Cesium",
+                        1860,
+                        1,
+                        6,
+                        "Alkali metal",
+                        "#57178f"
+                      ],
+                      [
+                        56,
+                        "Ba",
+                        "Barium",
+                        1808,
+                        2,
+                        6,
+                        "Alkaline earth metal",
+                        "#00c900"
+                      ],
+                      [
+                        57,
+                        "La",
+                        "Lanthanum",
+                        1839,
+                        "",
+                        6,
+                        "Lanthanide",
+                        "#70d4ff"
+                      ],
+                      [
+                        58,
+                        "Ce",
+                        "Cerium",
+                        1803,
+                        "",
+                        6,
+                        "Lanthanide",
+                        "#ffffc7"
+                      ],
+                      [
+                        59,
+                        "Pr",
+                        "Praseodymium",
+                        1885,
+                        "",
+                        6,
+                        "Lanthanide",
+                        "#d9ffc7"
+                      ],
+                      [
+                        60,
+                        "Nd",
+                        "Neodymium",
+                        1885,
+                        "",
+                        6,
+                        "Lanthanide",
+                        "#c7ffc7"
+                      ],
+                      [
+                        61,
+                        "Pm",
+                        "Promethium",
+                        1945,
+                        "",
+                        6,
+                        "Lanthanide",
+                        "#a3ffc7"
+                      ],
+                      [
+                        62,
+                        "Sm",
+                        "Samarium",
+                        1879,
+                        "",
+                        6,
+                        "Lanthanide",
+                        "#8fffc7"
+                      ],
+                      [
+                        63,
+                        "Eu",
+                        "Europium",
+                        1901,
+                        "",
+                        6,
+                        "Lanthanide",
+                        "#61ffc7"
+                      ],
+                      [
+                        64,
+                        "Gd",
+                        "Gadolinium",
+                        1880,
+                        "",
+                        6,
+                        "Lanthanide",
+                        "#45ffc7"
+                      ],
+                      [
+                        65,
+                        "Tb",
+                        "Terbium",
+                        1843,
+                        "",
+                        6,
+                        "Lanthanide",
+                        "#30ffc7"
+                      ],
+                      [
+                        66,
+                        "Dy",
+                        "Dysprosium",
+                        1886,
+                        "",
+                        6,
+                        "Lanthanide",
+                        "#1fffc7"
+                      ],
+                      [
+                        67,
+                        "Ho",
+                        "Holmium",
+                        1878,
+                        "",
+                        6,
+                        "Lanthanide",
+                        "#00ff9c"
+                      ],
+                      [
+                        68,
+                        "Er",
+                        "Erbium",
+                        1843,
+                        "",
+                        6,
+                        "Lanthanide",
+                        ""
+                      ],
+                      [
+                        69,
+                        "Tm",
+                        "Thulium",
+                        1879,
+                        "",
+                        6,
+                        "Lanthanide",
+                        "#00d452"
+                      ],
+                      [
+                        70,
+                        "Yb",
+                        "Ytterbium",
+                        1878,
+                        "",
+                        6,
+                        "Lanthanide",
+                        "#00bf38"
+                      ],
+                      [
+                        71,
+                        "Lu",
+                        "Lutetium",
+                        1907,
+                        "",
+                        6,
+                        "Lanthanide",
+                        "#00ab24"
+                      ],
+                      [
+                        72,
+                        "Hf",
+                        "Hafnium",
+                        1923,
+                        4,
+                        6,
+                        "Transition metal",
+                        "#4dc2ff"
+                      ],
+                      [
+                        73,
+                        "Ta",
+                        "Tantalum",
+                        1802,
+                        5,
+                        6,
+                        "Transition metal",
+                        "#4da6ff"
+                      ],
+                      [
+                        74,
+                        "W",
+                        "Tungsten",
+                        1783,
+                        6,
+                        6,
+                        "Transition metal",
+                        "#2194d6"
+                      ],
+                      [
+                        75,
+                        "Re",
+                        "Rhenium",
+                        1925,
+                        7,
+                        6,
+                        "Transition metal",
+                        "#267dab"
+                      ],
+                      [
+                        76,
+                        "Os",
+                        "Osmium",
+                        1803,
+                        8,
+                        6,
+                        "Transition metal",
+                        "#266696"
+                      ],
+                      [
+                        77,
+                        "Ir",
+                        "Iridium",
+                        1803,
+                        9,
+                        6,
+                        "Transition metal",
+                        "#175487"
+                      ],
+                      [
+                        78,
+                        "Pt",
+                        "Platinum",
+                        1735,
+                        10,
+                        6,
+                        "Transition metal",
+                        "#d0d0e0"
+                      ],
+                      [
+                        79,
+                        "Au",
+                        "Gold",
+                        "",
+                        11,
+                        6,
+                        "Transition metal",
+                        "#ffd123"
+                      ],
+                      [
+                        80,
+                        "Hg",
+                        "Mercury",
+                        "",
+                        12,
+                        6,
+                        "Transition metal",
+                        "#b8b8d0"
+                      ],
+                      [
+                        81,
+                        "Tl",
+                        "Thallium",
+                        1861,
+                        13,
+                        6,
+                        "Post-transition metal",
+                        "#a6544d"
+                      ],
+                      [
+                        82,
+                        "Pb",
+                        "Lead",
+                        "",
+                        14,
+                        6,
+                        "Post-transition metal",
+                        "#575961"
+                      ],
+                      [
+                        83,
+                        "Bi",
+                        "Bismuth",
+                        1753,
+                        15,
+                        6,
+                        "Post-transition metal",
+                        "#9e4fb5"
+                      ],
+                      [
+                        84,
+                        "Po",
+                        "Polonium",
+                        1898,
+                        16,
+                        6,
+                        "Metalloid",
+                        "#ab5c00"
+                      ],
+                      [
+                        85,
+                        "At",
+                        "Astatine",
+                        1940,
+                        17,
+                        6,
+                        "Halogen",
+                        "#754f45"
+                      ],
+                      [
+                        86,
+                        "Rn",
+                        "Radon",
+                        1900,
+                        18,
+                        6,
+                        "Noble gas",
+                        "#428296"
+                      ],
+                      [
+                        87,
+                        "Fr",
+                        "Francium",
+                        1939,
+                        1,
+                        7,
+                        "Alkali metal",
+                        "#420066"
+                      ],
+                      [
+                        88,
+                        "Ra",
+                        "Radium",
+                        1898,
+                        2,
+                        7,
+                        "Alkaline earth metal",
+                        "#007d00"
+                      ],
+                      [
+                        89,
+                        "Ac",
+                        "Actinium",
+                        1899,
+                        "",
+                        7,
+                        "Actinide",
+                        "#70abfa"
+                      ],
+                      [
+                        90,
+                        "Th",
+                        "Thorium",
+                        1828,
+                        "",
+                        7,
+                        "Actinide",
+                        "#00baff"
+                      ],
+                      [
+                        91,
+                        "Pa",
+                        "Protactinium",
+                        1913,
+                        "",
+                        7,
+                        "Actinide",
+                        "#00a1ff"
+                      ],
+                      [
+                        92,
+                        "U",
+                        "Uranium",
+                        1789,
+                        "",
+                        7,
+                        "Actinide",
+                        "#008fff"
+                      ],
+                      [
+                        93,
+                        "Np",
+                        "Neptunium",
+                        1940,
+                        "",
+                        7,
+                        "Actinide",
+                        "#0080ff"
+                      ],
+                      [
+                        94,
+                        "Pu",
+                        "Plutonium",
+                        1940,
+                        "",
+                        7,
+                        "Actinide",
+                        "#006bff"
+                      ],
+                      [
+                        95,
+                        "Am",
+                        "Americium",
+                        1944,
+                        "",
+                        7,
+                        "Actinide",
+                        "#545cf2"
+                      ],
+                      [
+                        96,
+                        "Cm",
+                        "Curium",
+                        1944,
+                        "",
+                        7,
+                        "Actinide",
+                        "#785ce3"
+                      ],
+                      [
+                        97,
+                        "Bk",
+                        "Berkelium",
+                        1949,
+                        "",
+                        7,
+                        "Actinide",
+                        "#8a4fe3"
+                      ],
+                      [
+                        98,
+                        "Cf",
+                        "Californium",
+                        1950,
+                        "",
+                        7,
+                        "Actinide",
+                        "#a136d4"
+                      ],
+                      [
+                        99,
+                        "Es",
+                        "Einsteinium",
+                        1952,
+                        "",
+                        7,
+                        "Actinide",
+                        "#b31fd4"
+                      ],
+                      [
+                        100,
+                        "Fm",
+                        "Fermium",
+                        1952,
+                        "",
+                        7,
+                        "Actinide",
+                        "#b31fba"
+                      ],
+                      [
+                        101,
+                        "Md",
+                        "Mendelevium",
+                        1955,
+                        "",
+                        7,
+                        "Actinide",
+                        "#b30da6"
+                      ],
+                      [
+                        102,
+                        "No",
+                        "Nobelium",
+                        1957,
+                        "",
+                        7,
+                        "Actinide",
+                        "#bd0d87"
+                      ],
+                      [
+                        103,
+                        "Lr",
+                        "Lawrencium",
+                        1961,
+                        "",
+                        7,
+                        "Actinide",
+                        "#c70066"
+                      ],
+                      [
+                        104,
+                        "Rf",
+                        "Rutherfordium",
+                        1964,
+                        4,
+                        7,
+                        "Transition metal",
+                        "#cc0059"
+                      ],
+                      [
+                        105,
+                        "Db",
+                        "Dubnium",
+                        1967,
+                        5,
+                        7,
+                        "Transition metal",
+                        "#d1004f"
+                      ],
+                      [
+                        106,
+                        "Sg",
+                        "Seaborgium",
+                        1974,
+                        6,
+                        7,
+                        "Transition metal",
+                        "#d90045"
+                      ],
+                      [
+                        107,
+                        "Bh",
+                        "Bohrium",
+                        1976,
+                        7,
+                        7,
+                        "Transition metal",
+                        "#e00038"
+                      ],
+                      [
+                        108,
+                        "Hs",
+                        "Hassium",
+                        1984,
+                        8,
+                        7,
+                        "Transition metal",
+                        "#e6002e"
+                      ],
+                      [
+                        109,
+                        "Mt",
+                        "Meitnerium",
+                        1982,
+                        9,
+                        7,
+                        "Transition metal",
+                        "#eb0026"
+                      ],
+                      [
+                        110,
+                        "Ds",
+                        "Darmstadtium",
+                        1994,
+                        10,
+                        7,
+                        "Transition metal",
+                        ""
+                      ],
+                      [
+                        111,
+                        "Rg",
+                        "Roentgenium",
+                        1994,
+                        11,
+                        7,
+                        "Transition metal",
+                        ""
+                      ],
+                      [
+                        112,
+                        "Cn",
+                        "Copernicium",
+                        1996,
+                        12,
+                        7,
+                        "Transition metal",
+                        ""
+                      ],
+                      [
+                        113,
+                        "Nh",
+                        "Nihonium",
+                        2004,
+                        13,
+                        7,
+                        "Post-transition metal",
+                        ""
+                      ],
+                      [
+                        114,
+                        "Fl",
+                        "Flerovium",
+                        1998,
+                        14,
+                        7,
+                        "Post-transition metal",
+                        ""
+                      ],
+                      [
+                        115,
+                        "Mc",
+                        "Moscovium",
+                        2003,
+                        15,
+                        7,
+                        "Post-transition metal",
+                        ""
+                      ],
+                      [
+                        116,
+                        "Lv",
+                        "Livermorium",
+                        2000,
+                        16,
+                        7,
+                        "Post-transition metal",
+                        ""
+                      ],
+                      [
+                        117,
+                        "Ts",
+                        "Tennessine",
+                        2010,
+                        17,
+                        7,
+                        "Halogen",
+                        ""
+                      ],
+                      [
+                        118,
+                        "Og",
+                        "Oganesson",
+                        2006,
+                        18,
+                        7,
+                        "Noble gas",
+                        ""
+                      ]
+                    ],
+                    "types": [
+                      [
+                        "Number",
+                        {
+                          "type": "number"
+                        }
+                      ],
+                      [
+                        "Year",
+                        {
+                          "type": "number"
+                        }
+                      ],
+                      [
+                        "Group",
+                        {
+                          "type": "number"
+                        }
+                      ],
+                      [
+                        "Period",
+                        {
+                          "type": "number"
+                        }
+                      ],
+                      [
+                        "Family",
+                        {
+                          "type": "category",
+                          "values": [
+                            "Nonmetal",
+                            "Noble gas",
+                            "Alkali metal",
+                            "Alkaline earth metal",
+                            "Metalloid",
+                            "Halogen",
+                            "Post-transition metal",
+                            "Transition metal",
+                            "Lanthanide",
+                            "Actinide"
+                          ]
+                        }
+                      ],
+                      [
+                        "Colour",
+                        {
+                          "type": "color"
+                        }
+                      ]
+                    ]
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      {
+        "type": "start",
+        "id": "start-pt-0032",
+        "x": 10,
+        "y": 330,
+        "inputs": {
+          "DO": {
+            "block": {
+              "type": "set_sky_color",
+              "id": "sky-pt-0014",
+              "inputs": {
+                "COLOR": {
+                  "shadow": {
+                    "type": "colour",
+                    "id": "colour-pt-0015",
+                    "fields": {
+                      "COLOR": "#87ceeb"
+                    }
+                  }
+                }
+              },
+              "next": {
+                "block": {
+                  "type": "create_map",
+                  "id": "map-pt-0016",
+                  "fields": {
+                    "MAP_NAME": "NONE"
+                  },
+                  "inputs": {
+                    "MATERIAL": {
+                      "shadow": {
+                        "type": "material",
+                        "id": "mat-pt-0017",
+                        "fields": {
+                          "TEXTURE_SET": "none.png"
+                        },
+                        "inputs": {
+                          "BASE_COLOR": {
+                            "shadow": {
+                              "type": "colour",
+                              "id": "colour-pt-0018",
+                              "fields": {
+                                "COLOR": "#eeeeee"
+                              }
+                            }
+                          },
+                          "ALPHA": {
+                            "shadow": {
+                              "type": "math_number",
+                              "id": "num-pt-0019",
+                              "fields": {
+                                "NUM": 1
+                              }
+                            }
+                          }
+                        }
+                      }
+                    }
+                  },
+                  "next": {
+                    "block": {
+                      "type": "comment",
+                      "id": "comment-pt-0020",
+                      "inputs": {
+                        "COMMENT": {
+                          "shadow": {
+                            "type": "text_multiline",
+                            "id": "ml-pt-0021",
+                            "fields": {
+                              "TEXT": "The periodic table in 3D. Each element is a column, and the later an element was discovered, the taller its column. Elements known since ancient times are all the same height. Click an element to see its name and when it was discovered. Use the arrow keys or the on-screen pad to move the camera."
+                            }
+                          }
+                        }
+                      },
+                      "next": {
+                        "block": {
+                          "type": "get_camera",
+                          "id": "getcam-pt-0022",
+                          "fields": {
+                            "VAR": {
+                              "id": "camera-pt-0001"
+                            }
+                          },
+                          "next": {
+                            "block": {
+                              "type": "move_to_xyz",
+                              "id": "move-pt-0023",
+                              "fields": {
+                                "MODEL": {
+                                  "id": "camera-pt-0001"
+                                },
+                                "USE_Y": true
+                              },
+                              "inputs": {
+                                "X": {
+                                  "shadow": {
+                                    "type": "math_number",
+                                    "id": "num-pt-0024",
+                                    "fields": {
+                                      "NUM": 0
+                                    }
+                                  }
+                                },
+                                "Y": {
+                                  "shadow": {
+                                    "type": "math_number",
+                                    "id": "num-pt-0025",
+                                    "fields": {
+                                      "NUM": 24
+                                    }
+                                  }
+                                },
+                                "Z": {
+                                  "shadow": {
+                                    "type": "math_number",
+                                    "id": "num-pt-0026",
+                                    "fields": {
+                                      "NUM": -14
+                                    }
+                                  }
+                                }
+                              },
+                              "next": {
+                                "block": {
+                                  "type": "rotate_to",
+                                  "id": "rot-pt-0027",
+                                  "fields": {
+                                    "MODEL": {
+                                      "id": "camera-pt-0001"
+                                    }
+                                  },
+                                  "inputs": {
+                                    "X": {
+                                      "shadow": {
+                                        "type": "math_number",
+                                        "id": "num-pt-0028",
+                                        "fields": {
+                                          "NUM": 55
+                                        }
+                                      }
+                                    },
+                                    "Y": {
+                                      "shadow": {
+                                        "type": "math_number",
+                                        "id": "num-pt-0029",
+                                        "fields": {
+                                          "NUM": 0
+                                        }
+                                      }
+                                    },
+                                    "Z": {
+                                      "shadow": {
+                                        "type": "math_number",
+                                        "id": "num-pt-0030",
+                                        "fields": {
+                                          "NUM": 0
+                                        }
+                                      }
+                                    }
+                                  },
+                                  "next": {
+                                    "block": {
+                                      "type": "canvas_controls",
+                                      "id": "controls-pt-0031",
+                                      "fields": {
+                                        "CONTROLS": true
+                                      }
+                                    }
+                                  }
+                                }
+                              }
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      {
+        "type": "start",
+        "id": "start-pt-0204",
+        "x": 10,
+        "y": 760,
+        "inputs": {
+          "DO": {
+            "block": {
+              "type": "comment",
+              "id": "comment-pt-0033",
+              "inputs": {
+                "COMMENT": {
+                  "shadow": {
+                    "type": "text_multiline",
+                    "id": "ml-pt-0034",
+                    "fields": {
+                      "TEXT": "PubChem's periodic table data lists aluminium and calcium as ancient, but its element pages say aluminium was first isolated in 1825 and calcium in 1808 (https://pubchem.ncbi.nlm.nih.gov/element/13 and https://pubchem.ncbi.nlm.nih.gov/element/20). We use those years instead."
+                    }
+                  }
+                }
+              },
+              "next": {
+                "block": {
+                  "type": "table_set_value",
+                  "id": "setcell-pt-0035",
+                  "fields": {
+                    "TABLE": {
+                      "id": "tbl-Elements-0001"
+                    }
+                  },
+                  "inputs": {
+                    "ROW": {
+                      "block": {
+                        "type": "table_find_row",
+                        "id": "find-pt-0036",
+                        "fields": {
+                          "WHERE": "FIRST",
+                          "TABLE": {
+                            "id": "tbl-Elements-0001"
+                          }
+                        },
+                        "inputs": {
+                          "COLUMN": {
+                            "shadow": {
+                              "type": "table_column_menu",
+                              "id": "col-pt-0037",
+                              "fields": {
+                                "COLUMN": "Symbol"
+                              }
+                            }
+                          },
+                          "VALUE": {
+                            "shadow": {
+                              "type": "text",
+                              "id": "text-pt-0038",
+                              "fields": {
+                                "TEXT": "Al"
+                              }
+                            }
+                          }
+                        }
+                      }
+                    },
+                    "COLUMN": {
+                      "shadow": {
+                        "type": "table_column_menu",
+                        "id": "col-pt-0039",
+                        "fields": {
+                          "COLUMN": "Year"
+                        }
+                      }
+                    },
+                    "VALUE": {
+                      "shadow": {
+                        "type": "math_number",
+                        "id": "num-pt-0040",
+                        "fields": {
+                          "NUM": 1825
+                        }
+                      }
+                    }
+                  },
+                  "next": {
+                    "block": {
+                      "type": "table_set_value",
+                      "id": "setcell-pt-0041",
+                      "fields": {
+                        "TABLE": {
+                          "id": "tbl-Elements-0001"
+                        }
+                      },
+                      "inputs": {
+                        "ROW": {
+                          "block": {
+                            "type": "table_find_row",
+                            "id": "find-pt-0042",
+                            "fields": {
+                              "WHERE": "FIRST",
+                              "TABLE": {
+                                "id": "tbl-Elements-0001"
+                              }
+                            },
+                            "inputs": {
+                              "COLUMN": {
+                                "shadow": {
+                                  "type": "table_column_menu",
+                                  "id": "col-pt-0043",
+                                  "fields": {
+                                    "COLUMN": "Symbol"
+                                  }
+                                }
+                              },
+                              "VALUE": {
+                                "shadow": {
+                                  "type": "text",
+                                  "id": "text-pt-0044",
+                                  "fields": {
+                                    "TEXT": "Ca"
+                                  }
+                                }
+                              }
+                            }
+                          }
+                        },
+                        "COLUMN": {
+                          "shadow": {
+                            "type": "table_column_menu",
+                            "id": "col-pt-0045",
+                            "fields": {
+                              "COLUMN": "Year"
+                            }
+                          }
+                        },
+                        "VALUE": {
+                          "shadow": {
+                            "type": "math_number",
+                            "id": "num-pt-0046",
+                            "fields": {
+                              "NUM": 1808
+                            }
+                          }
+                        }
+                      },
+                      "next": {
+                        "block": {
+                          "type": "comment",
+                          "id": "comment-pt-0047",
+                          "inputs": {
+                            "COMMENT": {
+                              "shadow": {
+                                "type": "text_multiline",
+                                "id": "ml-pt-0048",
+                                "fields": {
+                                  "TEXT": "The other 11 elements with no year in the data have been known since ancient times. We give them all the same year so they are all the same height. 1600 is a little before the first dated discovery, phosphorus in 1669. Try a much earlier year to see what happens to the other columns."
+                                }
+                              }
+                            }
+                          },
+                          "next": {
+                            "block": {
+                              "type": "variables_set",
+                              "id": "set-pt-0050",
+                              "fields": {
+                                "VAR": {
+                                  "id": "ancient-year-pt-0001"
+                                }
+                              },
+                              "inputs": {
+                                "VALUE": {
+                                  "shadow": {
+                                    "type": "math_number",
+                                    "id": "num-pt-0049",
+                                    "fields": {
+                                      "NUM": 1600
+                                    }
+                                  }
+                                }
+                              },
+                              "next": {
+                                "block": {
+                                  "type": "comment",
+                                  "id": "comment-pt-0051",
+                                  "inputs": {
+                                    "COMMENT": {
+                                      "shadow": {
+                                        "type": "text_multiline",
+                                        "id": "ml-pt-0052",
+                                        "fields": {
+                                          "TEXT": "10 elements have no colour in the data, so we make them grey."
+                                        }
+                                      }
+                                    }
+                                  },
+                                  "next": {
+                                    "block": {
+                                      "type": "table_for_each_row",
+                                      "id": "each-pt-0073",
+                                      "fields": {
+                                        "VAR": {
+                                          "id": "entry-pt-0001"
+                                        },
+                                        "INDEX": {
+                                          "id": "entry-number-pt-0001"
+                                        },
+                                        "TABLE": {
+                                          "id": "tbl-Elements-0001"
+                                        }
+                                      },
+                                      "inputs": {
+                                        "DO": {
+                                          "block": {
+                                            "type": "if_clause",
+                                            "id": "if-pt-0062",
+                                            "extraState": {
+                                              "mode": "IF",
+                                              "stashedCondState": null
+                                            },
+                                            "fields": {
+                                              "MODE": "IF"
+                                            },
+                                            "inputs": {
+                                              "COND": {
+                                                "block": {
+                                                  "type": "logic_compare",
+                                                  "id": "cmp-pt-0057",
+                                                  "fields": {
+                                                    "OP": "EQ"
+                                                  },
+                                                  "inputs": {
+                                                    "A": {
+                                                      "block": {
+                                                        "type": "table_row_value",
+                                                        "id": "rowval-pt-0053",
+                                                        "inputs": {
+                                                          "COLUMN": {
+                                                            "shadow": {
+                                                              "type": "table_column_menu",
+                                                              "id": "col-pt-0054",
+                                                              "fields": {
+                                                                "COLUMN": "Year"
+                                                              }
+                                                            }
+                                                          },
+                                                          "ROW": {
+                                                            "block": {
+                                                              "type": "variables_get",
+                                                              "id": "get-pt-0055",
+                                                              "fields": {
+                                                                "VAR": {
+                                                                  "id": "entry-pt-0001"
+                                                                }
+                                                              }
+                                                            }
+                                                          }
+                                                        }
+                                                      }
+                                                    },
+                                                    "B": {
+                                                      "shadow": {
+                                                        "type": "text",
+                                                        "id": "text-pt-0056",
+                                                        "fields": {
+                                                          "TEXT": ""
+                                                        }
+                                                      }
+                                                    }
+                                                  }
+                                                }
+                                              },
+                                              "DO": {
+                                                "block": {
+                                                  "type": "table_set_value",
+                                                  "id": "setcell-pt-0059",
+                                                  "fields": {
+                                                    "TABLE": {
+                                                      "id": "tbl-Elements-0001"
+                                                    }
+                                                  },
+                                                  "inputs": {
+                                                    "ROW": {
+                                                      "block": {
+                                                        "type": "variables_get",
+                                                        "id": "get-pt-0060",
+                                                        "fields": {
+                                                          "VAR": {
+                                                            "id": "entry-number-pt-0001"
+                                                          }
+                                                        }
+                                                      }
+                                                    },
+                                                    "COLUMN": {
+                                                      "shadow": {
+                                                        "type": "table_column_menu",
+                                                        "id": "col-pt-0061",
+                                                        "fields": {
+                                                          "COLUMN": "Year"
+                                                        }
+                                                      }
+                                                    },
+                                                    "VALUE": {
+                                                      "block": {
+                                                        "type": "variables_get",
+                                                        "id": "get-pt-0058",
+                                                        "fields": {
+                                                          "VAR": {
+                                                            "id": "ancient-year-pt-0001"
+                                                          }
+                                                        }
+                                                      }
+                                                    }
+                                                  }
+                                                }
+                                              }
+                                            },
+                                            "next": {
+                                              "block": {
+                                                "type": "if_clause",
+                                                "id": "if-pt-0072",
+                                                "extraState": {
+                                                  "mode": "IF",
+                                                  "stashedCondState": null
+                                                },
+                                                "fields": {
+                                                  "MODE": "IF"
+                                                },
+                                                "inputs": {
+                                                  "COND": {
+                                                    "block": {
+                                                      "type": "logic_compare",
+                                                      "id": "cmp-pt-0067",
+                                                      "fields": {
+                                                        "OP": "EQ"
+                                                      },
+                                                      "inputs": {
+                                                        "A": {
+                                                          "block": {
+                                                            "type": "table_row_value",
+                                                            "id": "rowval-pt-0063",
+                                                            "inputs": {
+                                                              "COLUMN": {
+                                                                "shadow": {
+                                                                  "type": "table_column_menu",
+                                                                  "id": "col-pt-0064",
+                                                                  "fields": {
+                                                                    "COLUMN": "Colour"
+                                                                  }
+                                                                }
+                                                              },
+                                                              "ROW": {
+                                                                "block": {
+                                                                  "type": "variables_get",
+                                                                  "id": "get-pt-0065",
+                                                                  "fields": {
+                                                                    "VAR": {
+                                                                      "id": "entry-pt-0001"
+                                                                    }
+                                                                  }
+                                                                }
+                                                              }
+                                                            }
+                                                          }
+                                                        },
+                                                        "B": {
+                                                          "shadow": {
+                                                            "type": "text",
+                                                            "id": "text-pt-0066",
+                                                            "fields": {
+                                                              "TEXT": ""
+                                                            }
+                                                          }
+                                                        }
+                                                      }
+                                                    }
+                                                  },
+                                                  "DO": {
+                                                    "block": {
+                                                      "type": "table_set_value",
+                                                      "id": "setcell-pt-0069",
+                                                      "fields": {
+                                                        "TABLE": {
+                                                          "id": "tbl-Elements-0001"
+                                                        }
+                                                      },
+                                                      "inputs": {
+                                                        "ROW": {
+                                                          "block": {
+                                                            "type": "variables_get",
+                                                            "id": "get-pt-0070",
+                                                            "fields": {
+                                                              "VAR": {
+                                                                "id": "entry-number-pt-0001"
+                                                              }
+                                                            }
+                                                          }
+                                                        },
+                                                        "COLUMN": {
+                                                          "shadow": {
+                                                            "type": "table_column_menu",
+                                                            "id": "col-pt-0071",
+                                                            "fields": {
+                                                              "COLUMN": "Colour"
+                                                            }
+                                                          }
+                                                        },
+                                                        "VALUE": {
+                                                          "shadow": {
+                                                            "type": "colour",
+                                                            "id": "colour-pt-0068",
+                                                            "fields": {
+                                                              "COLOR": "#c0c0c0"
+                                                            }
+                                                          }
+                                                        }
+                                                      }
+                                                    }
+                                                  }
+                                                }
+                                              }
+                                            }
+                                          }
+                                        }
+                                      },
+                                      "next": {
+                                        "block": {
+                                          "type": "comment",
+                                          "id": "comment-pt-0074",
+                                          "inputs": {
+                                            "COMMENT": {
+                                              "shadow": {
+                                                "type": "text_multiline",
+                                                "id": "ml-pt-0075",
+                                                "fields": {
+                                                  "TEXT": "Lanthanides and actinides have no group. Like most printed periodic tables, we put them in two rows below the main table."
+                                                }
+                                              }
+                                            }
+                                          },
+                                          "next": {
+                                            "block": {
+                                              "type": "table_for_each_row",
+                                              "id": "each-pt-0191",
+                                              "fields": {
+                                                "VAR": {
+                                                  "id": "element-pt-0001"
+                                                },
+                                                "INDEX": {
+                                                  "id": "count-pt-0001"
+                                                },
+                                                "TABLE": {
+                                                  "id": "tbl-Elements-0001"
+                                                }
+                                              },
+                                              "inputs": {
+                                                "DO": {
+                                                  "block": {
+                                                    "type": "if_clause",
+                                                    "id": "if-pt-0100",
+                                                    "extraState": {
+                                                      "mode": "IF",
+                                                      "stashedCondState": null
+                                                    },
+                                                    "fields": {
+                                                      "MODE": "IF"
+                                                    },
+                                                    "inputs": {
+                                                      "COND": {
+                                                        "block": {
+                                                          "type": "logic_compare",
+                                                          "id": "cmp-pt-0080",
+                                                          "fields": {
+                                                            "OP": "EQ"
+                                                          },
+                                                          "inputs": {
+                                                            "A": {
+                                                              "block": {
+                                                                "type": "table_row_value",
+                                                                "id": "rowval-pt-0076",
+                                                                "inputs": {
+                                                                  "COLUMN": {
+                                                                    "shadow": {
+                                                                      "type": "table_column_menu",
+                                                                      "id": "col-pt-0077",
+                                                                      "fields": {
+                                                                        "COLUMN": "Group"
+                                                                      }
+                                                                    }
+                                                                  },
+                                                                  "ROW": {
+                                                                    "block": {
+                                                                      "type": "variables_get",
+                                                                      "id": "get-pt-0078",
+                                                                      "fields": {
+                                                                        "VAR": {
+                                                                          "id": "element-pt-0001"
+                                                                        }
+                                                                      }
+                                                                    }
+                                                                  }
+                                                                }
+                                                              }
+                                                            },
+                                                            "B": {
+                                                              "shadow": {
+                                                                "type": "text",
+                                                                "id": "text-pt-0079",
+                                                                "fields": {
+                                                                  "TEXT": ""
+                                                                }
+                                                              }
+                                                            }
+                                                          }
+                                                        }
+                                                      },
+                                                      "DO": {
+                                                        "block": {
+                                                          "type": "variables_set",
+                                                          "id": "set-pt-0093",
+                                                          "fields": {
+                                                            "VAR": {
+                                                              "id": "across-pt-0001"
+                                                            }
+                                                          },
+                                                          "inputs": {
+                                                            "VALUE": {
+                                                              "block": {
+                                                                "type": "math_arithmetic",
+                                                                "id": "math-pt-0092",
+                                                                "fields": {
+                                                                  "OP": "MINUS"
+                                                                },
+                                                                "inputs": {
+                                                                  "A": {
+                                                                    "block": {
+                                                                      "type": "table_row_value",
+                                                                      "id": "rowval-pt-0081",
+                                                                      "inputs": {
+                                                                        "COLUMN": {
+                                                                          "shadow": {
+                                                                            "type": "table_column_menu",
+                                                                            "id": "col-pt-0082",
+                                                                            "fields": {
+                                                                              "COLUMN": "Number"
+                                                                            }
+                                                                          }
+                                                                        },
+                                                                        "ROW": {
+                                                                          "block": {
+                                                                            "type": "variables_get",
+                                                                            "id": "get-pt-0083",
+                                                                            "fields": {
+                                                                              "VAR": {
+                                                                                "id": "element-pt-0001"
+                                                                              }
+                                                                            }
+                                                                          }
+                                                                        }
+                                                                      }
+                                                                    }
+                                                                  },
+                                                                  "B": {
+                                                                    "block": {
+                                                                      "type": "logic_ternary",
+                                                                      "id": "tern-pt-0091",
+                                                                      "inputs": {
+                                                                        "IF": {
+                                                                          "block": {
+                                                                            "type": "logic_compare",
+                                                                            "id": "cmp-pt-0088",
+                                                                            "fields": {
+                                                                              "OP": "EQ"
+                                                                            },
+                                                                            "inputs": {
+                                                                              "A": {
+                                                                                "block": {
+                                                                                  "type": "table_row_value",
+                                                                                  "id": "rowval-pt-0084",
+                                                                                  "inputs": {
+                                                                                    "COLUMN": {
+                                                                                      "shadow": {
+                                                                                        "type": "table_column_menu",
+                                                                                        "id": "col-pt-0085",
+                                                                                        "fields": {
+                                                                                          "COLUMN": "Period"
+                                                                                        }
+                                                                                      }
+                                                                                    },
+                                                                                    "ROW": {
+                                                                                      "block": {
+                                                                                        "type": "variables_get",
+                                                                                        "id": "get-pt-0086",
+                                                                                        "fields": {
+                                                                                          "VAR": {
+                                                                                            "id": "element-pt-0001"
+                                                                                          }
+                                                                                        }
+                                                                                      }
+                                                                                    }
+                                                                                  }
+                                                                                }
+                                                                              },
+                                                                              "B": {
+                                                                                "shadow": {
+                                                                                  "type": "math_number",
+                                                                                  "id": "num-pt-0087",
+                                                                                  "fields": {
+                                                                                    "NUM": 6
+                                                                                  }
+                                                                                }
+                                                                              }
+                                                                            }
+                                                                          }
+                                                                        },
+                                                                        "THEN": {
+                                                                          "shadow": {
+                                                                            "type": "math_number",
+                                                                            "id": "num-pt-0089",
+                                                                            "fields": {
+                                                                              "NUM": 54
+                                                                            }
+                                                                          }
+                                                                        },
+                                                                        "ELSE": {
+                                                                          "shadow": {
+                                                                            "type": "math_number",
+                                                                            "id": "num-pt-0090",
+                                                                            "fields": {
+                                                                              "NUM": 86
+                                                                            }
+                                                                          }
+                                                                        }
+                                                                      }
+                                                                    }
+                                                                  }
+                                                                }
+                                                              }
+                                                            }
+                                                          },
+                                                          "next": {
+                                                            "block": {
+                                                              "type": "variables_set",
+                                                              "id": "set-pt-0099",
+                                                              "fields": {
+                                                                "VAR": {
+                                                                  "id": "back-pt-0001"
+                                                                }
+                                                              },
+                                                              "inputs": {
+                                                                "VALUE": {
+                                                                  "block": {
+                                                                    "type": "math_arithmetic",
+                                                                    "id": "math-pt-0098",
+                                                                    "fields": {
+                                                                      "OP": "ADD"
+                                                                    },
+                                                                    "inputs": {
+                                                                      "A": {
+                                                                        "block": {
+                                                                          "type": "table_row_value",
+                                                                          "id": "rowval-pt-0094",
+                                                                          "inputs": {
+                                                                            "COLUMN": {
+                                                                              "shadow": {
+                                                                                "type": "table_column_menu",
+                                                                                "id": "col-pt-0095",
+                                                                                "fields": {
+                                                                                  "COLUMN": "Period"
+                                                                                }
+                                                                              }
+                                                                            },
+                                                                            "ROW": {
+                                                                              "block": {
+                                                                                "type": "variables_get",
+                                                                                "id": "get-pt-0096",
+                                                                                "fields": {
+                                                                                  "VAR": {
+                                                                                    "id": "element-pt-0001"
+                                                                                  }
+                                                                                }
+                                                                              }
+                                                                            }
+                                                                          }
+                                                                        }
+                                                                      },
+                                                                      "B": {
+                                                                        "shadow": {
+                                                                          "type": "math_number",
+                                                                          "id": "num-pt-0097",
+                                                                          "fields": {
+                                                                            "NUM": 2.5
+                                                                          }
+                                                                        }
+                                                                      }
+                                                                    }
+                                                                  }
+                                                                }
+                                                              }
+                                                            }
+                                                          }
+                                                        }
+                                                      }
+                                                    },
+                                                    "next": {
+                                                      "block": {
+                                                        "type": "if_clause",
+                                                        "id": "if-pt-0109",
+                                                        "extraState": {
+                                                          "mode": "ELSE",
+                                                          "stashedCondState": null
+                                                        },
+                                                        "fields": {
+                                                          "MODE": "ELSE"
+                                                        },
+                                                        "inputs": {
+                                                          "DO": {
+                                                            "block": {
+                                                              "type": "variables_set",
+                                                              "id": "set-pt-0104",
+                                                              "fields": {
+                                                                "VAR": {
+                                                                  "id": "across-pt-0001"
+                                                                }
+                                                              },
+                                                              "inputs": {
+                                                                "VALUE": {
+                                                                  "block": {
+                                                                    "type": "table_row_value",
+                                                                    "id": "rowval-pt-0101",
+                                                                    "inputs": {
+                                                                      "COLUMN": {
+                                                                        "shadow": {
+                                                                          "type": "table_column_menu",
+                                                                          "id": "col-pt-0102",
+                                                                          "fields": {
+                                                                            "COLUMN": "Group"
+                                                                          }
+                                                                        }
+                                                                      },
+                                                                      "ROW": {
+                                                                        "block": {
+                                                                          "type": "variables_get",
+                                                                          "id": "get-pt-0103",
+                                                                          "fields": {
+                                                                            "VAR": {
+                                                                              "id": "element-pt-0001"
+                                                                            }
+                                                                          }
+                                                                        }
+                                                                      }
+                                                                    }
+                                                                  }
+                                                                }
+                                                              },
+                                                              "next": {
+                                                                "block": {
+                                                                  "type": "variables_set",
+                                                                  "id": "set-pt-0108",
+                                                                  "fields": {
+                                                                    "VAR": {
+                                                                      "id": "back-pt-0001"
+                                                                    }
+                                                                  },
+                                                                  "inputs": {
+                                                                    "VALUE": {
+                                                                      "block": {
+                                                                        "type": "table_row_value",
+                                                                        "id": "rowval-pt-0105",
+                                                                        "inputs": {
+                                                                          "COLUMN": {
+                                                                            "shadow": {
+                                                                              "type": "table_column_menu",
+                                                                              "id": "col-pt-0106",
+                                                                              "fields": {
+                                                                                "COLUMN": "Period"
+                                                                              }
+                                                                            }
+                                                                          },
+                                                                          "ROW": {
+                                                                            "block": {
+                                                                              "type": "variables_get",
+                                                                              "id": "get-pt-0107",
+                                                                              "fields": {
+                                                                                "VAR": {
+                                                                                  "id": "element-pt-0001"
+                                                                                }
+                                                                              }
+                                                                            }
+                                                                          }
+                                                                        }
+                                                                      }
+                                                                    }
+                                                                  }
+                                                                }
+                                                              }
+                                                            }
+                                                          }
+                                                        },
+                                                        "next": {
+                                                          "block": {
+                                                            "type": "variables_set",
+                                                            "id": "set-pt-0119",
+                                                            "fields": {
+                                                              "VAR": {
+                                                                "id": "height-pt-0001"
+                                                              }
+                                                            },
+                                                            "inputs": {
+                                                              "VALUE": {
+                                                                "block": {
+                                                                  "type": "math_arithmetic",
+                                                                  "id": "math-pt-0118",
+                                                                  "fields": {
+                                                                    "OP": "ADD"
+                                                                  },
+                                                                  "inputs": {
+                                                                    "A": {
+                                                                      "block": {
+                                                                        "type": "math_arithmetic",
+                                                                        "id": "math-pt-0116",
+                                                                        "fields": {
+                                                                          "OP": "DIVIDE"
+                                                                        },
+                                                                        "inputs": {
+                                                                          "A": {
+                                                                            "block": {
+                                                                              "type": "math_arithmetic",
+                                                                              "id": "math-pt-0114",
+                                                                              "fields": {
+                                                                                "OP": "MINUS"
+                                                                              },
+                                                                              "inputs": {
+                                                                                "A": {
+                                                                                  "block": {
+                                                                                    "type": "table_row_value",
+                                                                                    "id": "rowval-pt-0110",
+                                                                                    "inputs": {
+                                                                                      "COLUMN": {
+                                                                                        "shadow": {
+                                                                                          "type": "table_column_menu",
+                                                                                          "id": "col-pt-0111",
+                                                                                          "fields": {
+                                                                                            "COLUMN": "Year"
+                                                                                          }
+                                                                                        }
+                                                                                      },
+                                                                                      "ROW": {
+                                                                                        "block": {
+                                                                                          "type": "variables_get",
+                                                                                          "id": "get-pt-0112",
+                                                                                          "fields": {
+                                                                                            "VAR": {
+                                                                                              "id": "element-pt-0001"
+                                                                                            }
+                                                                                          }
+                                                                                        }
+                                                                                      }
+                                                                                    }
+                                                                                  }
+                                                                                },
+                                                                                "B": {
+                                                                                  "block": {
+                                                                                    "type": "variables_get",
+                                                                                    "id": "get-pt-0113",
+                                                                                    "fields": {
+                                                                                      "VAR": {
+                                                                                        "id": "ancient-year-pt-0001"
+                                                                                      }
+                                                                                    }
+                                                                                  }
+                                                                                }
+                                                                              }
+                                                                            }
+                                                                          },
+                                                                          "B": {
+                                                                            "shadow": {
+                                                                              "type": "math_number",
+                                                                              "id": "num-pt-0115",
+                                                                              "fields": {
+                                                                                "NUM": 80
+                                                                              }
+                                                                            }
+                                                                          }
+                                                                        }
+                                                                      }
+                                                                    },
+                                                                    "B": {
+                                                                      "shadow": {
+                                                                        "type": "math_number",
+                                                                        "id": "num-pt-0117",
+                                                                        "fields": {
+                                                                          "NUM": 1
+                                                                        }
+                                                                      }
+                                                                    }
+                                                                  }
+                                                                }
+                                                              }
+                                                            },
+                                                            "next": {
+                                                              "block": {
+                                                                "type": "create_box",
+                                                                "id": "box-pt-0120",
+                                                                "extraState": "<mutation xmlns=\"http://www.w3.org/1999/xhtml\" has_do=\"false\" has_then=\"false\"></mutation>",
+                                                                "fields": {
+                                                                  "ID_VAR": {
+                                                                    "id": "column-pt-0001"
+                                                                  }
+                                                                },
+                                                                "inputs": {
+                                                                  "COLOR": {
+                                                                    "block": {
+                                                                      "type": "table_row_value",
+                                                                      "id": "rowval-pt-0121",
+                                                                      "inputs": {
+                                                                        "COLUMN": {
+                                                                          "shadow": {
+                                                                            "type": "table_column_menu",
+                                                                            "id": "col-pt-0122",
+                                                                            "fields": {
+                                                                              "COLUMN": "Colour"
+                                                                            }
+                                                                          }
+                                                                        },
+                                                                        "ROW": {
+                                                                          "block": {
+                                                                            "type": "variables_get",
+                                                                            "id": "get-pt-0123",
+                                                                            "fields": {
+                                                                              "VAR": {
+                                                                                "id": "element-pt-0001"
+                                                                              }
+                                                                            }
+                                                                          }
+                                                                        }
+                                                                      }
+                                                                    }
+                                                                  },
+                                                                  "WIDTH": {
+                                                                    "shadow": {
+                                                                      "type": "math_number",
+                                                                      "id": "num-pt-0124",
+                                                                      "fields": {
+                                                                        "NUM": 1
+                                                                      }
+                                                                    }
+                                                                  },
+                                                                  "HEIGHT": {
+                                                                    "block": {
+                                                                      "type": "variables_get",
+                                                                      "id": "get-pt-0125",
+                                                                      "fields": {
+                                                                        "VAR": {
+                                                                          "id": "height-pt-0001"
+                                                                        }
+                                                                      }
+                                                                    }
+                                                                  },
+                                                                  "DEPTH": {
+                                                                    "shadow": {
+                                                                      "type": "math_number",
+                                                                      "id": "num-pt-0126",
+                                                                      "fields": {
+                                                                        "NUM": 1
+                                                                      }
+                                                                    }
+                                                                  },
+                                                                  "X": {
+                                                                    "block": {
+                                                                      "type": "math_arithmetic",
+                                                                      "id": "math-pt-0132",
+                                                                      "fields": {
+                                                                        "OP": "MULTIPLY"
+                                                                      },
+                                                                      "inputs": {
+                                                                        "A": {
+                                                                          "block": {
+                                                                            "type": "math_arithmetic",
+                                                                            "id": "math-pt-0130",
+                                                                            "fields": {
+                                                                              "OP": "MINUS"
+                                                                            },
+                                                                            "inputs": {
+                                                                              "A": {
+                                                                                "block": {
+                                                                                  "type": "variables_get",
+                                                                                  "id": "get-pt-0127",
+                                                                                  "fields": {
+                                                                                    "VAR": {
+                                                                                      "id": "across-pt-0001"
+                                                                                    }
+                                                                                  }
+                                                                                }
+                                                                              },
+                                                                              "B": {
+                                                                                "shadow": {
+                                                                                  "type": "math_number",
+                                                                                  "id": "num-pt-0129",
+                                                                                  "fields": {
+                                                                                    "NUM": 9.5
+                                                                                  }
+                                                                                }
+                                                                              }
+                                                                            }
+                                                                          }
+                                                                        },
+                                                                        "B": {
+                                                                          "shadow": {
+                                                                            "type": "math_number",
+                                                                            "id": "num-pt-0131",
+                                                                            "fields": {
+                                                                              "NUM": 1.2
+                                                                            }
+                                                                          }
+                                                                        }
+                                                                      }
+                                                                    }
+                                                                  },
+                                                                  "Z": {
+                                                                    "block": {
+                                                                      "type": "math_arithmetic",
+                                                                      "id": "math-pt-0136",
+                                                                      "fields": {
+                                                                        "OP": "MULTIPLY"
+                                                                      },
+                                                                      "inputs": {
+                                                                        "A": {
+                                                                          "block": {
+                                                                            "type": "math_arithmetic",
+                                                                            "id": "math-pt-0134",
+                                                                            "fields": {
+                                                                              "OP": "MINUS"
+                                                                            },
+                                                                            "inputs": {
+                                                                              "A": {
+                                                                                "shadow": {
+                                                                                  "type": "math_number",
+                                                                                  "id": "num-pt-0133",
+                                                                                  "fields": {
+                                                                                    "NUM": 5
+                                                                                  }
+                                                                                }
+                                                                              },
+                                                                              "B": {
+                                                                                "block": {
+                                                                                  "type": "variables_get",
+                                                                                  "id": "get-pt-0128",
+                                                                                  "fields": {
+                                                                                    "VAR": {
+                                                                                      "id": "back-pt-0001"
+                                                                                    }
+                                                                                  }
+                                                                                }
+                                                                              }
+                                                                            }
+                                                                          }
+                                                                        },
+                                                                        "B": {
+                                                                          "shadow": {
+                                                                            "type": "math_number",
+                                                                            "id": "num-pt-0135",
+                                                                            "fields": {
+                                                                              "NUM": 1.2
+                                                                            }
+                                                                          }
+                                                                        }
+                                                                      }
+                                                                    }
+                                                                  },
+                                                                  "Y": {
+                                                                    "shadow": {
+                                                                      "type": "math_number",
+                                                                      "id": "num-pt-0137",
+                                                                      "fields": {
+                                                                        "NUM": 0
+                                                                      }
+                                                                    }
+                                                                  }
+                                                                },
+                                                                "next": {
+                                                                  "block": {
+                                                                    "type": "create_plane",
+                                                                    "id": "plane-pt-0138",
+                                                                    "extraState": "<mutation xmlns=\"http://www.w3.org/1999/xhtml\" has_do=\"false\" has_then=\"false\" options=\"true\" rotate=\"true\"></mutation>",
+                                                                    "fields": {
+                                                                      "ID_VAR": {
+                                                                        "id": "symbol-pt-0001"
+                                                                      }
+                                                                    },
+                                                                    "inputs": {
+                                                                      "COLOR": {
+                                                                        "block": {
+                                                                          "type": "text_material",
+                                                                          "id": "textmat-pt-0139",
+                                                                          "inputs": {
+                                                                            "TEXT": {
+                                                                              "block": {
+                                                                                "type": "table_row_value",
+                                                                                "id": "rowval-pt-0140",
+                                                                                "inputs": {
+                                                                                  "COLUMN": {
+                                                                                    "shadow": {
+                                                                                      "type": "table_column_menu",
+                                                                                      "id": "col-pt-0141",
+                                                                                      "fields": {
+                                                                                        "COLUMN": "Symbol"
+                                                                                      }
+                                                                                    }
+                                                                                  },
+                                                                                  "ROW": {
+                                                                                    "block": {
+                                                                                      "type": "variables_get",
+                                                                                      "id": "get-pt-0142",
+                                                                                      "fields": {
+                                                                                        "VAR": {
+                                                                                          "id": "element-pt-0001"
+                                                                                        }
+                                                                                      }
+                                                                                    }
+                                                                                  }
+                                                                                }
+                                                                              }
+                                                                            },
+                                                                            "COLOR": {
+                                                                              "shadow": {
+                                                                                "type": "colour",
+                                                                                "id": "colour-pt-0143",
+                                                                                "fields": {
+                                                                                  "COLOR": "#000000"
+                                                                                }
+                                                                              }
+                                                                            },
+                                                                            "BACKGROUND_COLOR": {
+                                                                              "block": {
+                                                                                "type": "table_row_value",
+                                                                                "id": "rowval-pt-0144",
+                                                                                "inputs": {
+                                                                                  "COLUMN": {
+                                                                                    "shadow": {
+                                                                                      "type": "table_column_menu",
+                                                                                      "id": "col-pt-0145",
+                                                                                      "fields": {
+                                                                                        "COLUMN": "Colour"
+                                                                                      }
+                                                                                    }
+                                                                                  },
+                                                                                  "ROW": {
+                                                                                    "block": {
+                                                                                      "type": "variables_get",
+                                                                                      "id": "get-pt-0146",
+                                                                                      "fields": {
+                                                                                        "VAR": {
+                                                                                          "id": "element-pt-0001"
+                                                                                        }
+                                                                                      }
+                                                                                    }
+                                                                                  }
+                                                                                }
+                                                                              }
+                                                                            }
+                                                                          }
+                                                                        }
+                                                                      },
+                                                                      "WIDTH": {
+                                                                        "shadow": {
+                                                                          "type": "math_number",
+                                                                          "id": "num-pt-0147",
+                                                                          "fields": {
+                                                                            "NUM": 1
+                                                                          }
+                                                                        }
+                                                                      },
+                                                                      "HEIGHT": {
+                                                                        "shadow": {
+                                                                          "type": "math_number",
+                                                                          "id": "num-pt-0148",
+                                                                          "fields": {
+                                                                            "NUM": 1
+                                                                          }
+                                                                        }
+                                                                      },
+                                                                      "X": {
+                                                                        "shadow": {
+                                                                          "type": "math_number",
+                                                                          "id": "num-pt-0149",
+                                                                          "fields": {
+                                                                            "NUM": 0
+                                                                          }
+                                                                        }
+                                                                      },
+                                                                      "Y": {
+                                                                        "shadow": {
+                                                                          "type": "math_number",
+                                                                          "id": "num-pt-0150",
+                                                                          "fields": {
+                                                                            "NUM": 0
+                                                                          }
+                                                                        }
+                                                                      },
+                                                                      "Z": {
+                                                                        "shadow": {
+                                                                          "type": "math_number",
+                                                                          "id": "num-pt-0151",
+                                                                          "fields": {
+                                                                            "NUM": 0
+                                                                          }
+                                                                        }
+                                                                      },
+                                                                      "ROTATE_X": {
+                                                                        "shadow": {
+                                                                          "type": "math_number",
+                                                                          "id": "num-pt-0152",
+                                                                          "fields": {
+                                                                            "NUM": 90
+                                                                          }
+                                                                        }
+                                                                      },
+                                                                      "ROTATE_Y": {
+                                                                        "shadow": {
+                                                                          "type": "math_number",
+                                                                          "id": "num-pt-0153",
+                                                                          "fields": {
+                                                                            "NUM": 0
+                                                                          }
+                                                                        }
+                                                                      },
+                                                                      "ROTATE_Z": {
+                                                                        "shadow": {
+                                                                          "type": "math_number",
+                                                                          "id": "num-pt-0154",
+                                                                          "fields": {
+                                                                            "NUM": 0
+                                                                          }
+                                                                        }
+                                                                      }
+                                                                    },
+                                                                    "next": {
+                                                                      "block": {
+                                                                        "type": "parent_child",
+                                                                        "id": "parent-pt-0155",
+                                                                        "fields": {
+                                                                          "PARENT_MESH": {
+                                                                            "id": "column-pt-0001"
+                                                                          },
+                                                                          "CHILD_MESH": {
+                                                                            "id": "symbol-pt-0001"
+                                                                          }
+                                                                        },
+                                                                        "inputs": {
+                                                                          "X_OFFSET": {
+                                                                            "shadow": {
+                                                                              "type": "math_number",
+                                                                              "id": "num-pt-0156",
+                                                                              "fields": {
+                                                                                "NUM": 0
+                                                                              }
+                                                                            }
+                                                                          },
+                                                                          "Y_OFFSET": {
+                                                                            "block": {
+                                                                              "type": "math_arithmetic",
+                                                                              "id": "math-pt-0159",
+                                                                              "fields": {
+                                                                                "OP": "ADD"
+                                                                              },
+                                                                              "inputs": {
+                                                                                "A": {
+                                                                                  "block": {
+                                                                                    "type": "variables_get",
+                                                                                    "id": "get-pt-0157",
+                                                                                    "fields": {
+                                                                                      "VAR": {
+                                                                                        "id": "height-pt-0001"
+                                                                                      }
+                                                                                    }
+                                                                                  }
+                                                                                },
+                                                                                "B": {
+                                                                                  "shadow": {
+                                                                                    "type": "math_number",
+                                                                                    "id": "num-pt-0158",
+                                                                                    "fields": {
+                                                                                      "NUM": 0.01
+                                                                                    }
+                                                                                  }
+                                                                                }
+                                                                              }
+                                                                            }
+                                                                          },
+                                                                          "Z_OFFSET": {
+                                                                            "shadow": {
+                                                                              "type": "math_number",
+                                                                              "id": "num-pt-0160",
+                                                                              "fields": {
+                                                                                "NUM": 0
+                                                                              }
+                                                                            }
+                                                                          }
+                                                                        },
+                                                                        "next": {
+                                                                          "block": {
+                                                                            "type": "when_clicked",
+                                                                            "id": "click-pt-0161",
+                                                                            "extraState": "<mutation xmlns=\"http://www.w3.org/1999/xhtml\" inline=\"true\"></mutation>",
+                                                                            "fields": {
+                                                                              "MODEL_VAR": {
+                                                                                "id": "column-pt-0001"
+                                                                              },
+                                                                              "TRIGGER": "OnPickTrigger"
+                                                                            },
+                                                                            "inputs": {
+                                                                              "DO": {
+                                                                                "block": {
+                                                                                  "type": "ui_text",
+                                                                                  "id": "uitext-pt-0162",
+                                                                                  "fields": {
+                                                                                    "TEXTBLOCK_VAR": {
+                                                                                      "id": "info-pt-0001"
+                                                                                    },
+                                                                                    "H_ALIGN": "CENTER",
+                                                                                    "V_ALIGN": "TOP"
+                                                                                  },
+                                                                                  "inputs": {
+                                                                                    "TEXT": {
+                                                                                      "block": {
+                                                                                        "type": "text_join",
+                                                                                        "id": "join-pt-0183",
+                                                                                        "extraState": {
+                                                                                          "itemCount": 5
+                                                                                        },
+                                                                                        "inputs": {
+                                                                                          "ADD0": {
+                                                                                            "block": {
+                                                                                              "type": "table_row_value",
+                                                                                              "id": "rowval-pt-0163",
+                                                                                              "inputs": {
+                                                                                                "COLUMN": {
+                                                                                                  "shadow": {
+                                                                                                    "type": "table_column_menu",
+                                                                                                    "id": "col-pt-0164",
+                                                                                                    "fields": {
+                                                                                                      "COLUMN": "Name"
+                                                                                                    }
+                                                                                                  }
+                                                                                                },
+                                                                                                "ROW": {
+                                                                                                  "block": {
+                                                                                                    "type": "variables_get",
+                                                                                                    "id": "get-pt-0165",
+                                                                                                    "fields": {
+                                                                                                      "VAR": {
+                                                                                                        "id": "element-pt-0001"
+                                                                                                      }
+                                                                                                    }
+                                                                                                  }
+                                                                                                }
+                                                                                              }
+                                                                                            }
+                                                                                          },
+                                                                                          "ADD1": {
+                                                                                            "shadow": {
+                                                                                              "type": "text",
+                                                                                              "id": "text-pt-0166",
+                                                                                              "fields": {
+                                                                                                "TEXT": " ("
+                                                                                              }
+                                                                                            }
+                                                                                          },
+                                                                                          "ADD2": {
+                                                                                            "block": {
+                                                                                              "type": "table_row_value",
+                                                                                              "id": "rowval-pt-0167",
+                                                                                              "inputs": {
+                                                                                                "COLUMN": {
+                                                                                                  "shadow": {
+                                                                                                    "type": "table_column_menu",
+                                                                                                    "id": "col-pt-0168",
+                                                                                                    "fields": {
+                                                                                                      "COLUMN": "Symbol"
+                                                                                                    }
+                                                                                                  }
+                                                                                                },
+                                                                                                "ROW": {
+                                                                                                  "block": {
+                                                                                                    "type": "variables_get",
+                                                                                                    "id": "get-pt-0169",
+                                                                                                    "fields": {
+                                                                                                      "VAR": {
+                                                                                                        "id": "element-pt-0001"
+                                                                                                      }
+                                                                                                    }
+                                                                                                  }
+                                                                                                }
+                                                                                              }
+                                                                                            }
+                                                                                          },
+                                                                                          "ADD3": {
+                                                                                            "shadow": {
+                                                                                              "type": "text",
+                                                                                              "id": "text-pt-0170",
+                                                                                              "fields": {
+                                                                                                "TEXT": "): "
+                                                                                              }
+                                                                                            }
+                                                                                          },
+                                                                                          "ADD4": {
+                                                                                            "block": {
+                                                                                              "type": "logic_ternary",
+                                                                                              "id": "tern-pt-0182",
+                                                                                              "inputs": {
+                                                                                                "IF": {
+                                                                                                  "block": {
+                                                                                                    "type": "logic_compare",
+                                                                                                    "id": "cmp-pt-0175",
+                                                                                                    "fields": {
+                                                                                                      "OP": "EQ"
+                                                                                                    },
+                                                                                                    "inputs": {
+                                                                                                      "A": {
+                                                                                                        "block": {
+                                                                                                          "type": "table_row_value",
+                                                                                                          "id": "rowval-pt-0171",
+                                                                                                          "inputs": {
+                                                                                                            "COLUMN": {
+                                                                                                              "shadow": {
+                                                                                                                "type": "table_column_menu",
+                                                                                                                "id": "col-pt-0172",
+                                                                                                                "fields": {
+                                                                                                                  "COLUMN": "Year"
+                                                                                                                }
+                                                                                                              }
+                                                                                                            },
+                                                                                                            "ROW": {
+                                                                                                              "block": {
+                                                                                                                "type": "variables_get",
+                                                                                                                "id": "get-pt-0173",
+                                                                                                                "fields": {
+                                                                                                                  "VAR": {
+                                                                                                                    "id": "element-pt-0001"
+                                                                                                                  }
+                                                                                                                }
+                                                                                                              }
+                                                                                                            }
+                                                                                                          }
+                                                                                                        }
+                                                                                                      },
+                                                                                                      "B": {
+                                                                                                        "block": {
+                                                                                                          "type": "variables_get",
+                                                                                                          "id": "get-pt-0174",
+                                                                                                          "fields": {
+                                                                                                            "VAR": {
+                                                                                                              "id": "ancient-year-pt-0001"
+                                                                                                            }
+                                                                                                          }
+                                                                                                        }
+                                                                                                      }
+                                                                                                    }
+                                                                                                  }
+                                                                                                },
+                                                                                                "THEN": {
+                                                                                                  "shadow": {
+                                                                                                    "type": "text",
+                                                                                                    "id": "text-pt-0176",
+                                                                                                    "fields": {
+                                                                                                      "TEXT": "known since ancient times"
+                                                                                                    }
+                                                                                                  }
+                                                                                                },
+                                                                                                "ELSE": {
+                                                                                                  "block": {
+                                                                                                    "type": "text_join",
+                                                                                                    "id": "join-pt-0181",
+                                                                                                    "extraState": {
+                                                                                                      "itemCount": 2
+                                                                                                    },
+                                                                                                    "inputs": {
+                                                                                                      "ADD0": {
+                                                                                                        "shadow": {
+                                                                                                          "type": "text",
+                                                                                                          "id": "text-pt-0177",
+                                                                                                          "fields": {
+                                                                                                            "TEXT": "discovered in "
+                                                                                                          }
+                                                                                                        }
+                                                                                                      },
+                                                                                                      "ADD1": {
+                                                                                                        "block": {
+                                                                                                          "type": "table_row_value",
+                                                                                                          "id": "rowval-pt-0178",
+                                                                                                          "inputs": {
+                                                                                                            "COLUMN": {
+                                                                                                              "shadow": {
+                                                                                                                "type": "table_column_menu",
+                                                                                                                "id": "col-pt-0179",
+                                                                                                                "fields": {
+                                                                                                                  "COLUMN": "Year"
+                                                                                                                }
+                                                                                                              }
+                                                                                                            },
+                                                                                                            "ROW": {
+                                                                                                              "block": {
+                                                                                                                "type": "variables_get",
+                                                                                                                "id": "get-pt-0180",
+                                                                                                                "fields": {
+                                                                                                                  "VAR": {
+                                                                                                                    "id": "element-pt-0001"
+                                                                                                                  }
+                                                                                                                }
+                                                                                                              }
+                                                                                                            }
+                                                                                                          }
+                                                                                                        }
+                                                                                                      }
+                                                                                                    }
+                                                                                                  }
+                                                                                                }
+                                                                                              }
+                                                                                            }
+                                                                                          }
+                                                                                        }
+                                                                                      }
+                                                                                    },
+                                                                                    "X": {
+                                                                                      "shadow": {
+                                                                                        "type": "math_number",
+                                                                                        "id": "num-pt-0184",
+                                                                                        "fields": {
+                                                                                          "NUM": 0
+                                                                                        }
+                                                                                      }
+                                                                                    },
+                                                                                    "Y": {
+                                                                                      "shadow": {
+                                                                                        "type": "math_number",
+                                                                                        "id": "num-pt-0185",
+                                                                                        "fields": {
+                                                                                          "NUM": 200
+                                                                                        }
+                                                                                      }
+                                                                                    },
+                                                                                    "FONT_SIZE": {
+                                                                                      "shadow": {
+                                                                                        "type": "math_number",
+                                                                                        "id": "num-pt-0186",
+                                                                                        "fields": {
+                                                                                          "NUM": 32
+                                                                                        }
+                                                                                      }
+                                                                                    },
+                                                                                    "DURATION": {
+                                                                                      "shadow": {
+                                                                                        "type": "math_number",
+                                                                                        "id": "num-pt-0187",
+                                                                                        "fields": {
+                                                                                          "NUM": 0
+                                                                                        }
+                                                                                      }
+                                                                                    },
+                                                                                    "COLOR": {
+                                                                                      "shadow": {
+                                                                                        "type": "colour",
+                                                                                        "id": "colour-pt-0188",
+                                                                                        "fields": {
+                                                                                          "COLOR": "#ffffff"
+                                                                                        }
+                                                                                      }
+                                                                                    },
+                                                                                    "BACKGROUND_COLOR": {
+                                                                                      "shadow": {
+                                                                                        "type": "colour",
+                                                                                        "id": "colour-pt-0189",
+                                                                                        "fields": {
+                                                                                          "COLOR": "#000080"
+                                                                                        }
+                                                                                      }
+                                                                                    },
+                                                                                    "ALPHA": {
+                                                                                      "shadow": {
+                                                                                        "type": "math_number",
+                                                                                        "id": "num-pt-0190",
+                                                                                        "fields": {
+                                                                                          "NUM": 0.8
+                                                                                        }
+                                                                                      }
+                                                                                    }
+                                                                                  }
+                                                                                }
+                                                                              }
+                                                                            }
+                                                                          }
+                                                                        }
+                                                                      }
+                                                                    }
+                                                                  }
+                                                                }
+                                                              }
+                                                            }
+                                                          }
+                                                        }
+                                                      }
+                                                    }
+                                                  }
+                                                }
+                                              },
+                                              "next": {
+                                                "block": {
+                                                  "type": "print_text",
+                                                  "id": "print-pt-0192",
+                                                  "inputs": {
+                                                    "TEXT": {
+                                                      "shadow": {
+                                                        "type": "text",
+                                                        "id": "text-pt-0193",
+                                                        "fields": {
+                                                          "TEXT": "When were the elements discovered?"
+                                                        }
+                                                      }
+                                                    },
+                                                    "DURATION": {
+                                                      "shadow": {
+                                                        "type": "math_number",
+                                                        "id": "num-pt-0194",
+                                                        "fields": {
+                                                          "NUM": 60
+                                                        }
+                                                      }
+                                                    },
+                                                    "COLOR": {
+                                                      "shadow": {
+                                                        "type": "colour",
+                                                        "id": "colour-pt-0195",
+                                                        "fields": {
+                                                          "COLOR": "#000080"
+                                                        }
+                                                      }
+                                                    }
+                                                  },
+                                                  "next": {
+                                                    "block": {
+                                                      "type": "print_text",
+                                                      "id": "print-pt-0196",
+                                                      "inputs": {
+                                                        "TEXT": {
+                                                          "shadow": {
+                                                            "type": "text",
+                                                            "id": "text-pt-0197",
+                                                            "fields": {
+                                                              "TEXT": "Click an element to find out"
+                                                            }
+                                                          }
+                                                        },
+                                                        "DURATION": {
+                                                          "shadow": {
+                                                            "type": "math_number",
+                                                            "id": "num-pt-0198",
+                                                            "fields": {
+                                                              "NUM": 60
+                                                            }
+                                                          }
+                                                        },
+                                                        "COLOR": {
+                                                          "shadow": {
+                                                            "type": "colour",
+                                                            "id": "colour-pt-0199",
+                                                            "fields": {
+                                                              "COLOR": "#000080"
+                                                            }
+                                                          }
+                                                        }
+                                                      },
+                                                      "next": {
+                                                        "block": {
+                                                          "type": "print_text",
+                                                          "id": "print-pt-0200",
+                                                          "inputs": {
+                                                            "TEXT": {
+                                                              "shadow": {
+                                                                "type": "text",
+                                                                "id": "text-pt-0201",
+                                                                "fields": {
+                                                                  "TEXT": "Data: PubChem, National Library of Medicine"
+                                                                }
+                                                              }
+                                                            },
+                                                            "DURATION": {
+                                                              "shadow": {
+                                                                "type": "math_number",
+                                                                "id": "num-pt-0202",
+                                                                "fields": {
+                                                                  "NUM": 60
+                                                                }
+                                                              }
+                                                            },
+                                                            "COLOR": {
+                                                              "shadow": {
+                                                                "type": "colour",
+                                                                "id": "colour-pt-0203",
+                                                                "fields": {
+                                                                  "COLOR": "#000080"
+                                                                }
+                                                              }
+                                                            }
+                                                          }
+                                                        }
+                                                      }
+                                                    }
+                                                  }
+                                                }
+                                              }
+                                            }
+                                          }
+                                        }
+                                      }
+                                    }
+                                  }
+                                }
+                              }
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    ]
+  },
+  "variables": [
+    {
+      "name": "Elements",
+      "id": "tbl-Elements-0001",
+      "type": "Table"
+    },
+    {
+      "name": "camera",
+      "id": "camera-pt-0001"
+    },
+    {
+      "name": "ancient year",
+      "id": "ancient-year-pt-0001"
+    },
+    {
+      "name": "entry",
+      "id": "entry-pt-0001"
+    },
+    {
+      "name": "entry number",
+      "id": "entry-number-pt-0001"
+    },
+    {
+      "name": "element",
+      "id": "element-pt-0001"
+    },
+    {
+      "name": "count",
+      "id": "count-pt-0001"
+    },
+    {
+      "name": "across",
+      "id": "across-pt-0001"
+    },
+    {
+      "name": "back",
+      "id": "back-pt-0001"
+    },
+    {
+      "name": "height",
+      "id": "height-pt-0001"
+    },
+    {
+      "name": "column",
+      "id": "column-pt-0001"
+    },
+    {
+      "name": "label",
+      "id": "symbol-pt-0001"
+    },
+    {
+      "name": "info",
+      "id": "info-pt-0001"
+    }
+  ]
+}

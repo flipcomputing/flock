@@ -1357,6 +1357,7 @@ export default {
   tallest_buildings_ui: 'Tallest buildings',
   tallest_buildings_tables_ui: 'Tallest buildings (tables)',
   letter_frequency_ui: 'Letter frequency',
+  periodic_discovery_ui: 'Discovering the elements',
   candy_dash_ui: 'Candy dash',
   flockenspiel_ui: 'Flockenspiel',
   pendant_ui: '3D-printable pendant',

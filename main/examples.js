@@ -104,6 +104,12 @@ const ALL_EXAMPLES = [
     category: 'data',
     feature: 'dataScience',
   },
+  {
+    i18nKey: 'periodic_discovery',
+    file: 'examples/periodic_discovery.flock',
+    category: 'data',
+    feature: 'dataScience',
+  },
   { i18nKey: 'pendant', file: 'examples/pendant.flock', category: 'xr' },
   {
     i18nKey: 'flockxr_keyring',

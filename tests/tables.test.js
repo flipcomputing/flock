@@ -1027,6 +1027,27 @@ export function runTablesTests(flock) {
       });
     });
 
+    describe('periodic discovery example', function () {
+      it('makes the Elements table with all 118 elements and leaves the gaps to code', async function () {
+        const res = await fetch('/examples/periodic_discovery.flock');
+        const code = compileFlockProject(await res.json());
+        const line = code.split('\n').find((each) => each.includes('createTable("Elements"'));
+        const data = JSON.parse(`[${line.slice(line.indexOf('], [') + 3, line.lastIndexOf(')'))}]`);
+        const [rows] = data;
+        expect(rows.map(([number]) => number)).to.deep.equal(
+          Array.from({ length: 118 }, (_, i) => i + 1)
+        );
+        expect(rows[0]).to.deep.equal([1, 'H', 'Hydrogen', 1766, 1, 1, 'Nonmetal', '#ffffff']);
+        expect(rows.filter((row) => row[3] === '')).to.have.length(13);
+        expect(code).to.match(/setTableValue\(Elements, findTableRow\(Elements, ['"]Symbol['"], ['"]Al['"]/);
+        expect(rows.filter((row) => row[7] === '')).to.have.length(10);
+        expect(rows.every((row) => row[3] === '' || typeof row[3] === 'number')).to.equal(true);
+        expect(code).to.match(/setTableValue\(Elements, [^,]+, ['"]Year['"]/);
+        expect(() => flock.prepareUserCode(code)).not.to.throw();
+        expect(EXAMPLES.map((ex) => ex.i18nKey)).to.include('periodic_discovery');
+      });
+    });
+
     describe('variable type', function () {
       let workspace;
 
