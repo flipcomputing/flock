@@ -1669,7 +1669,7 @@ export default {
     'Este archivo es demasiado grande. Un archivo CSV puede tener hasta 1 MB.', // ai
   table_csv_empty: 'Este archivo no tiene datos.', // ai
   table_csv_not_text: 'Este archivo no es un archivo CSV.', // ai
-  table_csv_wrong_type: 'Elige un archivo cuyo nombre termine en .csv.', // ai
+  table_csv_wrong_type: 'Elige un archivo cuyo nombre termine en .csv o .txt.', // ai
   table_csv_read_failed: 'No se pudo leer el archivo CSV.', // ai
   table_column_type_any: 'cualquiera', // ai
   table_editor_field_type: 'Tipo', // ai

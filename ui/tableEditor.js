@@ -625,7 +625,7 @@ class TableEditor {
           types: [
             {
               description: translate('table_csv_file_description'),
-              accept: { 'text/csv': ['.csv'] },
+              accept: { 'text/csv': ['.csv'], 'text/plain': ['.txt'] },
             },
           ],
         });
@@ -636,7 +636,7 @@ class TableEditor {
       }
     }
     return new Promise((resolve) => {
-      const input = h('input', { type: 'file', accept: '.csv,text/csv', hidden: true });
+      const input = h('input', { type: 'file', accept: '.csv,.txt,text/csv,text/plain', hidden: true });
       const done = (file) => {
         input.remove();
         resolve(file);
@@ -668,7 +668,7 @@ class TableEditor {
     const block = this.liveBlock();
     const stillOpen = () => this.block === block && !this.container.hidden && !this.importDialog;
     try {
-      if (!file.name.toLowerCase().endsWith('.csv')) {
+      if (!/\.(csv|txt)$/i.test(file.name)) {
         throw new CsvImportError('table_csv_wrong_type');
       }
       if (file.size > CSV_LIMITS.bytes) throw new CsvImportError('table_csv_too_large');

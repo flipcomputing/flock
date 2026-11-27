@@ -1762,7 +1762,7 @@ export default {
   table_csv_too_large: 'This file is too big. A CSV file can be up to 1 MB.',
   table_csv_empty: 'This file has no data.',
   table_csv_not_text: 'This file is not a CSV file.',
-  table_csv_wrong_type: 'Choose a file whose name ends in .csv.',
+  table_csv_wrong_type: 'Choose a file whose name ends in .csv or .txt.',
   table_csv_read_failed: 'The CSV file could not be read.',
   table_column_type_any: 'any',
   table_editor_field_type: 'Type',
