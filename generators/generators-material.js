@@ -154,8 +154,10 @@ export function registerMaterialGenerators(javascriptGenerator) {
       javascriptGenerator.valueToCode(block, 'SCALE', javascriptGenerator.ORDER_ATOMIC) || '1';
     const angle =
       javascriptGenerator.valueToCode(block, 'ANGLE', javascriptGenerator.ORDER_ATOMIC) || '0';
+    const size =
+      javascriptGenerator.valueToCode(block, 'SIZE', javascriptGenerator.ORDER_ATOMIC) || '0';
 
-    const code = `{ text: ${text}, color: ${color}, background: ${background}, alpha: ${alpha}, scale: ${scale}, angle: ${angle} }`;
+    const code = `{ text: ${text}, color: ${color}, background: ${background}, alpha: ${alpha}, scale: ${scale}, angle: ${angle}, size: ${size} }`;
     return [code, javascriptGenerator.ORDER_ATOMIC];
   };
 

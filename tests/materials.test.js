@@ -282,6 +282,30 @@ export function runMaterialsTests(flock) {
       expect(wideSize.height).to.equal(512);
     });
 
+    it('maps say() text once across a plane, left to right from the front', async function () {
+      const id = flock.createPlane('planeSayUVs', {
+        color: '#ffcc00',
+        width: 2,
+        height: 1,
+        position: [30, 0, 0],
+      });
+      boxIds.push(id);
+
+      await flock.say(id, { text: 'Q', duration: 0 });
+      const mesh = flock.scene.getMeshByName(id);
+      const check = () => {
+        const positions = mesh.getVerticesData(flock.BABYLON.VertexBuffer.PositionKind);
+        const uvs = mesh.getVerticesData(flock.BABYLON.VertexBuffer.UVKind);
+        for (let i = 0; i < positions.length / 3; i++) {
+          expect(uvs[i * 2]).to.equal(positions[i * 3] < 0 ? 0 : 1);
+          expect(uvs[i * 2 + 1]).to.equal(positions[i * 3 + 1] < 0 ? 0 : 1);
+        }
+      };
+      check();
+      flock.retileMeshTexture(mesh);
+      check();
+    });
+
     it('should clear effects from a mesh', async function () {
       const { id, color } = await createBoxWithColorAndPosition('boxClear');
       boxIds.push(id);
@@ -2645,6 +2669,64 @@ export function runMaterialsTests(flock) {
       expect(inner.metadata.textParams.alpha).to.be.closeTo(0.6, 1e-6);
       outer.dispose(false, true);
       inner.dispose(false, true);
+    });
+
+    const inkBox = (params) => {
+      const material = flock.getOrCreateMaterial(letter(params.text, params), 1, {
+        cached: false,
+      });
+      const { data, width, height } = material.diffuseTexture
+        .getContext()
+        .getImageData(0, 0, 512, 512);
+      let top = height;
+      let bottom = -1;
+      let left = width;
+      let right = -1;
+      for (let y = 0; y < height; y++) {
+        for (let x = 0; x < width; x++) {
+          if (data[(y * width + x) * 4] >= 128) continue;
+          top = Math.min(top, y);
+          bottom = Math.max(bottom, y);
+          left = Math.min(left, x);
+          right = Math.max(right, x);
+        }
+      }
+      material.dispose(false, true);
+      return { top, bottom, width: right - left + 1 };
+    };
+
+    it('fits each text to the tile when no size is given', function () {
+      const one = inkBox({ text: 'H' });
+      const four = inkBox({ text: 'HHHH' });
+      expect(one.bottom - one.top).to.be.greaterThan(four.bottom - four.top + 50);
+    });
+
+    it('draws text at the same size and line when a size is given', function () {
+      const one = inkBox({ text: 'H', size: 40 });
+      const two = inkBox({ text: 'HH', size: 40 });
+      expect(one.top).to.be.closeTo(two.top, 1);
+      expect(one.bottom).to.be.closeTo(two.bottom, 1);
+      expect(two.width).to.be.greaterThan(one.width * 1.8);
+    });
+
+    it('sizes text against the tile like say() on a plane, whatever the scale', function () {
+      const one = inkBox({ text: 'H', size: 40 });
+      const scaled = inkBox({ text: 'H', size: 40, scale: 2 });
+      expect(scaled.bottom - scaled.top).to.be.closeTo(one.bottom - one.top, 1);
+    });
+
+    it('shrinks sized text that would not fit the tile', function () {
+      const wide = inkBox({ text: 'WWWWWWWW', size: 64 });
+      expect(wide.width).to.be.at.most(512 * 0.8 + 2);
+    });
+
+    it('makes a new material for a different text size', function () {
+      const a = flock.getOrCreateMaterial(letter('S', { size: 24 }));
+      const b = flock.getOrCreateMaterial(letter('S', { size: 64 }));
+      expect(a).to.not.equal(b);
+      expect(b.metadata.textParams.size).to.equal(64);
+      flock.disposeOldMaterial(a);
+      flock.disposeOldMaterial(b);
     });
 
     it('fades the background but keeps the text solid', function () {

@@ -27,6 +27,8 @@ const MATERIAL_OPTION_INPUTS = [
   ['ANGLE', 'material_angle', 0],
 ];
 
+const TEXT_MATERIAL_OPTION_INPUTS = [...MATERIAL_OPTION_INPUTS, ['SIZE', 'material_text_size', 0]];
+
 const GRADIENT_MATERIAL_OPTION_INPUTS = [
   ...MATERIAL_OPTION_INPUTS.filter(([name]) => name !== 'ANGLE'),
   ['NOISE', 'material_noise', 0],
@@ -192,7 +194,7 @@ export function defineMaterialsBlocks() {
       });
       this.setHelpUrl(getHelpUrlFor(this.type));
       this.setStyle('materials_blocks');
-      appendMaterialOptions(this, MATERIAL_OPTION_INPUTS);
+      appendMaterialOptions(this, TEXT_MATERIAL_OPTION_INPUTS);
     },
 
     ...materialOptionsMethods,

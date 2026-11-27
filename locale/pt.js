@@ -256,6 +256,7 @@ export default {
   material_alpha: 'opacidade',
   material_scale: 'escala',
   material_angle: 'ângulo',
+  material_text_size: 'tamanho do texto', // ai
   gradient_material: 'material %1 opacidade %2',
   set_material: 'definir material de %1 para %2',
 

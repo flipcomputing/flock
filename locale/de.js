@@ -257,6 +257,7 @@ export default {
   material_alpha: 'Alpha',
   material_scale: 'Skalierung',
   material_angle: 'Winkel',
+  material_text_size: 'Textgröße', // ai
   gradient_material: 'Material %1 Alpha %2',
   set_material: 'Material von %1 auf %2 setzen',
 

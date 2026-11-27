@@ -257,6 +257,7 @@ export default {
   material_alpha: 'przezroczystość:',
   material_scale: 'skala:',
   material_angle: 'kąt:',
+  material_text_size: 'rozmiar tekstu:', // ai
   gradient_material: 'gradientowy materiał %1 przezroczystość: %2',
   set_material: 'ustaw materiał %2 na %1',
 

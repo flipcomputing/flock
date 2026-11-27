@@ -1121,6 +1121,7 @@ export const flockUI = {
             originalPlaneColor: plane.material?.diffuseColor?.toHexString?.() || '#ffffff',
             sayBackground: { color: background, alpha: originalPlaneAlpha },
           };
+          flock.setPlaneUnitUVs(plane);
         } else {
           const cachedPlane = targetMesh.metadata?.sayPlane;
           plane =

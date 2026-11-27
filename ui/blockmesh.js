@@ -604,6 +604,7 @@ export function readColourValue(block) {
         alpha: readNumberInput(block, 'ALPHA', 1),
         scale: readNumberInput(block, 'SCALE', 1),
         angle: readNumberInput(block, 'ANGLE', 0),
+        size: readNumberInput(block, 'SIZE', 0),
       },
       kind: 'material',
     };

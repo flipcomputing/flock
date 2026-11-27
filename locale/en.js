@@ -293,6 +293,7 @@ export default {
   material_scale: 'scale',
   material_noise: 'noise',
   material_angle: 'angle',
+  material_text_size: 'text size',
   gradient_material: 'material %1 alpha %2',
   gradient_colour: 'gradient %1 direction %2°',
   gradient_texture_material: 'gradient material %1 %2 %3 %4 %5%6',

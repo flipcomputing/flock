@@ -262,6 +262,7 @@ export default {
   material_scale: 'escala',
   material_noise: 'ruido', // ai
   material_angle: 'ángulo',
+  material_text_size: 'tamaño del texto', // ai
   gradient_material: 'material %1 alfa %2', // human
   gradient_colour: 'degradado %1 dirección %2°', // ai
   gradient_texture_material: 'material degradado %1 %2 %3 %4 %5%6', // ai

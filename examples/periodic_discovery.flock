@@ -2720,6 +2720,9 @@
                                                                                 "block": {
                                                                                   "type": "text_material",
                                                                                   "id": "textmat-pt-0139",
+                                                                                  "extraState": {
+                                                                                    "options": true
+                                                                                  },
                                                                                   "inputs": {
                                                                                     "TEXT": {
                                                                                       "block": {
@@ -2783,6 +2786,15 @@
                                                                                               }
                                                                                             }
                                                                                           }
+                                                                                        }
+                                                                                      }
+                                                                                    },
+                                                                                    "SIZE": {
+                                                                                      "shadow": {
+                                                                                        "type": "math_number",
+                                                                                        "id": "num-pt-9101",
+                                                                                        "fields": {
+                                                                                          "NUM": 64
                                                                                         }
                                                                                       }
                                                                                     }

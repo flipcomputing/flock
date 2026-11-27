@@ -1253,7 +1253,25 @@ export const flockMesh = {
     mesh.setVerticesData(flock.BABYLON.VertexBuffer.UVKind, uvs, true);
   },
 
+  // A say() texture covers the whole plane once, read left to right from the front.
+  setPlaneUnitUVs(mesh) {
+    const positions = mesh.getVerticesData(flock.BABYLON.VertexBuffer.PositionKind);
+    if (!positions) return;
+    const { minimum, maximum } = mesh.getBoundingInfo().boundingBox;
+    const width = maximum.x - minimum.x || 1;
+    const height = maximum.y - minimum.y || 1;
+    const uvs = new Float32Array((positions.length / 3) * 2);
+    for (let i = 0; i < positions.length / 3; i++) {
+      uvs[i * 2] = (positions[i * 3] - minimum.x) / width;
+      uvs[i * 2 + 1] = (positions[i * 3 + 1] - minimum.y) / height;
+    }
+    mesh.setVerticesData(flock.BABYLON.VertexBuffer.UVKind, uvs, true);
+  },
   setSizeBasedPlaneUVs(mesh, width, height, texturePhysicalSize = TEXTURE_TILE_SIZE, scale = null) {
+    if (mesh.metadata?.hasSayTexture) {
+      flock.setPlaneUnitUVs(mesh);
+      return;
+    }
     const positions = mesh.getVerticesData(flock.BABYLON.VertexBuffer.PositionKind);
     const uvs =
       mesh.getVerticesData(flock.BABYLON.VertexBuffer.UVKind) ||

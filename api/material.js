@@ -321,19 +321,23 @@ function readTextParams(value, alpha) {
     alpha: clampToRange(Number(value.alpha ?? alpha ?? 1), 'unit'),
     scale: readTextureScale(value),
     angle: readTextureAngle(value),
+    size: Math.max(0, Number(value.size) || 0),
   };
 }
 
 function textMaterialCacheKey(params) {
-  const { text, color, background, alpha, scale, angle } = params;
-  return `txt_${JSON.stringify([text, color, background, alpha.toFixed(2), scale, angle])}`;
+  const { text, color, background, alpha, scale, angle, size } = params;
+  return `txt_${JSON.stringify([text, color, background, alpha.toFixed(2), scale, angle, size])}`;
 }
 
 const TEXT_TEXTURE_SIZE = 512;
 const TEXT_FILL = 0.8;
 const TEXT_FONT = 'sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Noto Color Emoji"';
 
-function drawTextTile(ctx, { text, color, background, alpha }) {
+// With a size, the font is size/128 of the tile, as say() sizes text on a
+// plane, shrinking only if the text would not fit; texts share the font's
+// line so they match. Without one, each text is fitted to the tile on its own.
+function drawTextTile(ctx, { text, color, background, alpha, size: textSize = 0 }) {
   const size = TEXT_TEXTURE_SIZE;
   ctx.clearRect(0, 0, size, size);
   ctx.globalAlpha = alpha;
@@ -348,19 +352,27 @@ function drawTextTile(ctx, { text, color, background, alpha }) {
   const width = m.actualBoundingBoxLeft + m.actualBoundingBoxRight;
   const height = m.actualBoundingBoxAscent + m.actualBoundingBoxDescent;
   const fit = (size * TEXT_FILL) / Math.max(width, height, 1);
+  const fixed = textSize > 0 ? Math.min((textSize * size) / 128 / probe, fit) : 0;
+  const k = fixed || fit;
+  const ascent = fixed
+    ? (m.fontBoundingBoxAscent ?? m.actualBoundingBoxAscent)
+    : m.actualBoundingBoxAscent;
+  const descent = fixed
+    ? (m.fontBoundingBoxDescent ?? m.actualBoundingBoxDescent)
+    : m.actualBoundingBoxDescent;
 
   ctx.save();
   // Shape UVs run right to left as seen from outside, so the tile is drawn mirrored.
   ctx.translate(size, 0);
   ctx.scale(-1, 1);
-  ctx.font = `bold ${probe * fit}px ${TEXT_FONT}`;
+  ctx.font = `bold ${probe * k}px ${TEXT_FONT}`;
   ctx.textAlign = 'left';
   ctx.textBaseline = 'alphabetic';
   ctx.fillStyle = color;
   ctx.fillText(
     text,
-    size / 2 + ((m.actualBoundingBoxLeft - m.actualBoundingBoxRight) * fit) / 2,
-    size / 2 + ((m.actualBoundingBoxAscent - m.actualBoundingBoxDescent) * fit) / 2
+    size / 2 + ((m.actualBoundingBoxLeft - m.actualBoundingBoxRight) * k) / 2,
+    size / 2 + ((ascent - descent) * k) / 2
   );
   ctx.restore();
 }

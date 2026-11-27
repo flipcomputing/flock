@@ -255,6 +255,7 @@ export default {
   material_alpha: 'alfa',
   material_scale: 'skala',
   material_angle: 'vinkel',
+  material_text_size: 'textstorlek', // ai
   gradient_material: 'material %1 alfa %2',
   set_material: 'ställ in material för %1 till %2',
 
