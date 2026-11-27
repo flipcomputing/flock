@@ -434,6 +434,12 @@ export default {
   table_column_type_datetime: 'fecha y hora', // ai
   table_column_type_category: 'categoría', // ai
   table_column_type_color: 'color', // ai
+  table_column_type_emoji: 'emoji', // ai
+  emoji_picker_label: 'Elige un emoji', // ai
+  emoji_picker_categories: 'Grupos de emojis', // ai
+  emoji_picker_skin_tone: 'Tono de piel', // ai
+  emoji_picker_person: 'Persona', // ai
+  emoji_picker_custom: 'Escribe o pega un emoji', // ai
   ui_text: 'UI texto %1 %2 en x: %3 y: %4\ntamaño: %5 por %6 segundos color: %7 en: %8 alfa %9', // human
   ui_align: 'desde',
   ui_button: 'UI botón %1 %2 en x: %3 y: %4\ntamaño: %5 tamaño del texto: %6 texto: %7 en: %8', // human
@@ -1475,6 +1481,7 @@ export default {
   datetime_value_tooltip: 'Una fecha y una hora del día, por ejemplo 2026-11-22 14:30.', // ai
   date_value_tooltip: 'Una fecha, escrita como año-mes-día, por ejemplo 2026-11-22.', // ai
   money_value_tooltip: 'Una cantidad de dinero. Se guarda como un número, redondeado a la moneda más pequeña.', // ai
+  emoji_value_tooltip: 'Un emoji. Haz clic para elegir otro, o escribe o pega el tuyo.', // ai
   table_column_menu_tooltip: 'Elige una columna de la tabla o pon aquí un bloque de texto.', // ai
   table_default_column_name: 'Nombre', // ai
   table_default_value_column_name: 'Valor', // ai
@@ -1620,6 +1627,8 @@ export default {
     "La columna {column} de {table} es para colores como #ff8800, así que '{value}' no encaja.", // ai
   table_value_not_category:
     "La columna {column} de {table} puede ser {values}, así que '{value}' no encaja.", // ai
+  table_value_not_emoji:
+    "La columna {column} de {table} es para un solo emoji, así que '{value}' no encaja.", // ai
   table_not_a_row:
     'Eso no es una fila de tabla. Usa una fila de un bloque para cada fila o de un bloque fila de.', // ai
   table_loop_same_variable: 'Usa variables distintas para la fila y su número.', // ai

@@ -2802,6 +2802,51 @@ export function runTablesTests(flock) {
         expect(tableValueWarningFor(adder)).to.equal(null);
       });
 
+      it('keeps one emoji in an emoji column and flags anything else', function () {
+        flock.createTable('Pets', ['Pet'], [], { Pet: { type: 'emoji' } });
+        flock.addTableRow('Pets', [' \u{1F431} ']);
+        flock.addTableRow('Pets', ['\u{2764}']);
+        flock.addTableRow('Pets', ['cat']);
+        expect(flock.getTableColumn('Pets', 'Pet')).to.deep.equal([
+          '\u{1F431}',
+          '\u{2764}\u{FE0F}',
+          'cat',
+        ]);
+        expect(keys()).to.deep.equal(['table_value_not_emoji']);
+      });
+
+      it('generates an emoji block as a string and offers it for emoji columns', function () {
+        const types = { Pet: { type: 'emoji' } };
+        const code = compileFlockProject(
+          project(
+            chain(
+              creatorOf(['Pet'], { columns: ['Pet'], rows: [], types }),
+              block('table_add_row', {
+                fields: { TABLE: table('Shop') },
+                inputs: {
+                  VALUES: list(value({ type: 'emoji_value', fields: { EMOJI: '\u{1F436}' } })),
+                },
+              })
+            )
+          )
+        );
+        expect(code, code).to.include('addTableRow(Shop, ["\u{1F436}"]);');
+        expect(() => flock.prepareUserCode(code)).not.to.throw();
+        const blocks = tableFlyoutBlocks('Pets', 'table2', 'Pet', [{ name: 'Pet', type: 'emoji' }]);
+        const setter = blocks.find((item) => item.type === 'table_set_value');
+        expect(setter.inputs.VALUE.shadow.type).to.equal('emoji_value');
+      });
+
+      it('keeps the emoji block to one emoji', function () {
+        const emoji = workspace.newBlock('emoji_value');
+        expect(emoji.getFieldValue('EMOJI')).to.equal('\u{1F600}');
+        emoji.setFieldValue('not an emoji', 'EMOJI');
+        expect(emoji.getFieldValue('EMOJI')).to.equal('\u{1F600}');
+        const runner = '\u{1F3C3}\u{1F3FD}\u{200D}\u{2640}\u{FE0F}';
+        emoji.setFieldValue(runner, 'EMOJI');
+        expect(emoji.getFieldValue('EMOJI')).to.equal(runner);
+      });
+
       it('rejects bad dates and keeps money to the smallest coin in the blocks', function () {
         const date = workspace.newBlock('date_value');
         date.setFieldValue('2026-2-3', 'DATE');

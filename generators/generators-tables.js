@@ -146,6 +146,10 @@ export function registerTablesGenerators(javascriptGenerator) {
     return [JSON.stringify(block.getFieldValue('DATETIME')), javascriptGenerator.ORDER_ATOMIC];
   };
 
+  javascriptGenerator.forBlock['emoji_value'] = function (block) {
+    return [JSON.stringify(block.getFieldValue('EMOJI')), javascriptGenerator.ORDER_ATOMIC];
+  };
+
   javascriptGenerator.forBlock['money_value'] = function (block) {
     const amount = Number(block.getFieldValue('AMOUNT'));
     const code = String(Number.isFinite(amount) ? amount : 0);

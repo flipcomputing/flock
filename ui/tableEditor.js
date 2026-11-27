@@ -4,6 +4,7 @@ import { h, svgIcon } from './dom.js';
 import { normaliseDate, normaliseDateTime, normaliseTime, typedCell } from '../api/tables.js';
 import { formatDateTime, formatTime } from '../blocks/fieldTimes.js';
 import { contrastRatio } from '../blocks/colourcontrast.js';
+import { createEmojiPicker } from './emojiPicker.js';
 import { saveBlob } from '../main/saveFile.js';
 import { holdAutosave } from '../main/autosaveHold.js';
 import {
@@ -60,7 +61,18 @@ const ICONS = {
   close: [['path', { d: 'M6 6l12 12M18 6L6 18' }]],
 };
 
-const BASE_TYPES = ['', 'TEXT', 'NUMBER', 'MONEY', 'DATE', 'TIME', 'DATETIME', 'CATEGORY', 'COLOR'];
+const BASE_TYPES = [
+  '',
+  'TEXT',
+  'NUMBER',
+  'MONEY',
+  'DATE',
+  'TIME',
+  'DATETIME',
+  'CATEGORY',
+  'COLOR',
+  'EMOJI',
+];
 
 const PICKERS = {
   date: ['date', normaliseDate],
@@ -328,6 +340,7 @@ class TableEditor {
     if (this.block !== block) {
       this.panel = null;
       this.cancelColourPicker();
+      this.closeEmojiPicker(false);
     }
     this.block = block;
     if (!reopening) this.active = { row: 0, column: 0 };
@@ -350,6 +363,7 @@ class TableEditor {
     this.closeColumnPanel(false);
     this.importDialog?.finish(false, false);
     this.cancelColourPicker();
+    this.closeEmojiPicker(false);
     const block = this.liveBlock();
     this.container.hidden = true;
     window.visualViewport?.removeEventListener('resize', this.onViewportChange);
@@ -498,6 +512,7 @@ class TableEditor {
       element.prepend(warningIcon());
       return element;
     }
+    if (spec?.type === 'emoji' && value !== '') element.classList.add('table-editor-emoji');
     if (spec?.type === 'color' && value !== '') {
       const text = textColourOn(value);
       element.style.background = value;
@@ -917,6 +932,10 @@ class TableEditor {
       this.openColourPicker(row, column);
       return;
     }
+    if (spec?.type === 'emoji' && initial === undefined) {
+      this.openEmojiPicker(row, column, cell);
+      return;
+    }
     const original = this.rows[row][column];
     const label = translate('table_editor_cell_label')
       .replace('%1', this.columns[column])
@@ -1215,6 +1234,50 @@ class TableEditor {
         if (!this.container.hidden) this.focusActive();
       },
     });
+  }
+
+  closeEmojiPicker(restoreFocus = true) {
+    const popup = this.emojiPopup;
+    if (!popup) return;
+    this.emojiPopup = null;
+    document.removeEventListener('pointerdown', popup.onOutside, true);
+    popup.element.remove();
+    if (restoreFocus && !this.container.hidden) this.focusActive();
+  }
+
+  openEmojiPicker(row, column, cell) {
+    this.closeEmojiPicker(false);
+    const blockId = this.liveBlock()?.id;
+    const stamp = this.dataStamp();
+    const picker = createEmojiPicker({
+      value: String(this.rows[row][column]),
+      onPick: (emoji) => {
+        this.closeEmojiPicker(false);
+        const block = this.liveBlock();
+        if (!block || this.container.hidden) return;
+        if (block.id !== blockId || this.dataStamp() !== stamp) return;
+        setStartCell(block, row, column, emoji);
+        this.render();
+        this.setActive(row, column);
+        this.focusActive();
+      },
+      onCancel: () => this.closeEmojiPicker(),
+    });
+    const element = h('div', { class: 'emoji-picker-popup' }, picker.element);
+    const onOutside = (event) => {
+      if (!element.contains(event.target)) this.closeEmojiPicker(false);
+    };
+    this.emojiPopup = { element, onOutside };
+    document.body.append(element);
+    const area = visibleArea();
+    const rect = cell.getBoundingClientRect();
+    const { width, height } = element.getBoundingClientRect();
+    const below = rect.bottom + 4;
+    const top = below + height <= area.top + area.height ? below : rect.top - height - 4;
+    element.style.left = `${clamp(rect.left, area.left + MARGIN, area.left + area.width - width - MARGIN)}px`;
+    element.style.top = `${clamp(top, area.top + MARGIN, area.top + area.height - height - MARGIN)}px`;
+    document.addEventListener('pointerdown', onOutside, true);
+    picker.focus();
   }
 
   onInputKeydown(event) {

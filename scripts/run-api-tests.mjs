@@ -127,6 +127,11 @@ const AVAILABLE_SUITES = [
     pattern: '@tables',
   },
   {
+    id: 'emoji',
+    name: 'Emoji Tests',
+    pattern: '@emoji',
+  },
+  {
     id: 'terrain',
     name: 'Terrain From Table Tests',
     pattern: '@terrain',

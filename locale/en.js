@@ -476,6 +476,12 @@ export default {
   table_column_type_datetime: 'date and time',
   table_column_type_category: 'category',
   table_column_type_color: 'color',
+  table_column_type_emoji: 'emoji',
+  emoji_picker_label: 'Choose an emoji',
+  emoji_picker_categories: 'Emoji groups',
+  emoji_picker_skin_tone: 'Skin tone',
+  emoji_picker_person: 'Person',
+  emoji_picker_custom: 'Type or paste an emoji',
   ui_text: 'ui text %1 %2 at x: %3 y: %4\nsize: %5 for %6 seconds color: %7 on: %8 alpha: %9',
   ui_align: 'from',
   ui_button: 'ui button %1 %2 at x: %3 y: %4\nsize: %5 text size: %6 text: %7 on: %8',
@@ -1573,6 +1579,7 @@ export default {
   time_value_tooltip: 'A time of day, written as hours:minutes, like 14:30.',
   datetime_value_tooltip: 'A date and a time of day, like 2026-11-22 14:30.',
   money_value_tooltip: 'An amount of money. It is stored as a number, rounded to the smallest coin.',
+  emoji_value_tooltip: 'One emoji. Click it to choose another, or type or paste your own.',
   table_column_menu_tooltip: 'Pick a column of the table, or put a text block here.',
   table_default_column_name: 'Name',
   table_default_value_column_name: 'Value',
@@ -1719,6 +1726,7 @@ export default {
     "Column {column} in {table} is for colors like #ff8800, so '{value}' doesn't fit.",
   table_value_not_category:
     "Column {column} in {table} can be {values}, so '{value}' doesn't fit.",
+  table_value_not_emoji: "Column {column} in {table} is for one emoji, so '{value}' doesn't fit.",
   table_not_a_row:
     "That isn't a table row. Use the row from a for each row block or a row of block.",
   table_loop_same_variable: 'Use different variables for the row and its number.',

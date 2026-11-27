@@ -1,6 +1,7 @@
 @import url('./style/blockly.css');
 @import url('./ui/colourpicker.css');
 @import url('./ui/tableEditor.css');
+@import url('./ui/emojiPicker.css');
 
 :root {
   --app-height: 100dvh;

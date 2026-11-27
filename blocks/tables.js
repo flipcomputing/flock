@@ -2,6 +2,7 @@ import * as Blockly from 'blockly';
 import { loops } from 'blockly/blocks';
 import '@blockly/field-date';
 import './fieldTimes.js';
+import { DEFAULT_EMOJI } from './fieldEmoji.js';
 import { getHelpUrlFor } from './blocks.js';
 import { nextVariableName } from './variableNames.js';
 import { translate, getTooltip } from '../main/translation.js';
@@ -201,6 +202,7 @@ const DATE_BLOCK = 'date_value';
 const MONEY_BLOCK = 'money_value';
 const TIME_BLOCK = 'time_value';
 const DATETIME_BLOCK = 'datetime_value';
+const EMOJI_BLOCK = 'emoji_value';
 
 class FieldTableColumn extends Blockly.FieldDropdown {
   constructor(value) {
@@ -319,6 +321,8 @@ function literalValue(block) {
       return { value: block.getFieldValue('DATETIME') };
     case MONEY_BLOCK:
       return { value: Number(block.getFieldValue('AMOUNT')) };
+    case EMOJI_BLOCK:
+      return { value: block.getFieldValue('EMOJI') };
     case 'colour':
     case 'colour_from_string':
       return { value: block.getFieldValue('COLOR') };
@@ -862,6 +866,18 @@ export function defineTableBlocks() {
         const amount = normaliseMoney(value, this.getFieldValue('CURRENCY'));
         return amount === null ? null : String(amount);
       });
+    }
+  );
+
+  defineTableBlock(
+    EMOJI_BLOCK,
+    () => ({
+      message0: '%1',
+      args0: [{ type: 'field_emoji', name: 'EMOJI', value: DEFAULT_EMOJI }],
+      output: 'String',
+    }),
+    function () {
+      this.setStyle('variable_blocks');
     }
   );
 

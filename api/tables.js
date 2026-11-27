@@ -1,4 +1,5 @@
 import { normaliseColourInput } from '../blocks/colourvalidation.js';
+import { normaliseEmoji } from '../blocks/emoji.js';
 
 let flock;
 
@@ -97,6 +98,7 @@ export const COLUMN_TYPES = [
   'datetime',
   'category',
   'color',
+  'emoji',
 ];
 
 export function columnSpec(column) {
@@ -204,6 +206,7 @@ export function typedCell(spec, value) {
     time: normaliseTime,
     datetime: normaliseDateTime,
     color: normaliseColour,
+    emoji: normaliseEmoji,
   };
   if (checks[type]) {
     const result = checks[type](cell);

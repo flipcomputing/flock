@@ -3891,7 +3891,7 @@ const toolboxMaterials = {
       type: 'text_material',
       keyword: 'textmat',
       inputs: {
-        TEXT: { shadow: { type: 'text', fields: { TEXT: 'A' } } },
+        TEXT: { shadow: { type: 'emoji_value', fields: { EMOJI: '\u{1F353}' } } },
         COLOR: { shadow: { type: 'colour', fields: { COLOR: '#000000' } } },
         BACKGROUND_COLOR: { shadow: { type: 'colour', fields: { COLOR: '#ffffff' } } },
       },
@@ -4478,6 +4478,8 @@ function valueShadowFor(spec) {
       return { shadow: { type: 'datetime_value', fields: { DATETIME: `${todayText()} 12:00` } } };
     case 'color':
       return { shadow: { type: 'colour', fields: { COLOR: '#ff0000' } } };
+    case 'emoji':
+      return { shadow: { type: 'emoji_value', fields: { EMOJI: '\u{1F600}' } } };
     case 'category':
       return textShadow(spec.values?.[0] ?? '');
     default:
@@ -4639,6 +4641,7 @@ const toolboxData = {
   icon: './images/data.svg',
   categorystyle: 'variables_category',
   contents: [
+    { kind: 'block', type: 'emoji_value', keyword: 'emoji', fields: { EMOJI: '\u{1F600}' } },
     ...(isFeatureEnabled('dataScience')
       ? [
           {

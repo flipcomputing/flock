@@ -538,3 +538,9 @@ body.color-picker-open .custom-color-picker {
   justify-content: flex-end;
   gap: 8px;
 }
+
+.table-editor-grid td.table-editor-emoji {
+  font-family: 'Apple Color Emoji', 'Segoe UI Emoji', 'Noto Color Emoji', sans-serif;
+  font-size: 18px;
+  line-height: 1;
+}
