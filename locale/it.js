@@ -363,6 +363,9 @@ export default {
   // Custom block translations - Math blocks
   random_seeded_int: 'numero intero casuale da %1 a %2 seed: %3',
   to_number: 'converti %1 in %2',
+  convert_using_convert: 'converti', // ai
+  convert_using_using: 'con', // ai
+  convert_using_otherwise: 'altrimenti', // ai
 
   // Custom block translations - Transform blocks
   move_by_xyz: 'cambia posizione di %1 di x: %2 y: %3 z: %4',
@@ -639,6 +642,8 @@ export default {
   random_seeded_int_tooltip: 'Genera un numero intero casuale con un seed.',
   to_number_tooltip:
     'Converte in un altro tipo, come intero, decimale, testo, vero o falso, o binario. Un intero toglie tutto dopo la virgola. Vero e falso diventano 1 e 0. Solo il testo true o false, o un numero, diventa vero o falso; 0 è falso. Binario ed esadecimale richiedono un numero intero e danno testo, con le lettere esadecimali maiuscole. Un input vuoto, o ciò che non corrisponde al tipo, dà un vuoto.', // ai
+  convert_using_tooltip:
+    'Converte un valore usando un elenco di coppie. Ottieni il lato destro della prima coppia in cui il confronto del valore con il lato sinistro è vero, controllando dall’alto. Con = il testo non bada alle maiuscole e i numeri corrispondono per valore. Con < metti prima il più piccolo, quindi 0.3 e poi 0.45. Se nessuna coppia va bene, ottieni l’ultimo valore. Usa + e - per aggiungere o togliere coppie.', // ai
 
   // Tooltip translations - Transform blocks
   move_by_xyz_tooltip: 'Muove un oggetto di una certa quantità in x, y e z.',

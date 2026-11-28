@@ -361,6 +361,9 @@ export default {
   // Custom block translations - Math blocks
   random_seeded_int: 'slumpmässigt heltal från %1 till %2 frö: %3',
   to_number: 'konvertera %1 till %2',
+  convert_using_convert: 'konvertera', // ai
+  convert_using_using: 'med', // ai
+  convert_using_otherwise: 'annars', // ai
 
   // Custom block translations - Transform blocks
   move_by_xyz: 'ändra positionen för %1 med x: %2 y: %3 z: %4',
@@ -639,6 +642,8 @@ export default {
   random_seeded_int_tooltip: 'Genererar ett slumpmässigt heltal med frö.',
   to_number_tooltip:
     'Konverterar till en annan typ, till exempel heltal, decimaltal, text, sant eller falskt, eller binär. Ett heltal tar bort allt efter decimaltecknet. Sant och falskt blir 1 och 0. Bara texten true eller false, eller ett tal, blir sant eller falskt; 0 är falskt. Binär och hexadecimal behöver ett heltal och ger text, med versaler för hexadecimala bokstäver. Tom inmatning, eller något som inte passar typen, ger ett tomt värde.', // ai
+  convert_using_tooltip:
+    'Konverterar ett värde med en lista av par. Du får höger sida i det första paret där jämförelsen av värdet med vänster sida är sann, uppifrån. Med = bryr sig text inte om stora bokstäver och tal matchar efter värde. Med < sätt det minsta först, alltså 0.3 och sedan 0.45. Om inget par passar får du det sista värdet. Använd + och - för att lägga till eller ta bort par.', // ai
 
   // Tooltip translations - Transform blocks
   move_by_xyz_tooltip: 'Flytta ett objekt ett angivet värde i x-, y- och z-led.',

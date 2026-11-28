@@ -365,6 +365,9 @@ export default {
   // Custom block translations - Math blocks
   random_seeded_int: 'inteiro aleatório de %1 a %2 semente: %3',
   to_number: 'converter %1 para %2',
+  convert_using_convert: 'converter', // ai
+  convert_using_using: 'usando', // ai
+  convert_using_otherwise: 'senão', // ai
 
   // Custom block translations - Transform blocks
   move_by_xyz: 'alterar posição de %1 em x: %2 y: %3 z: %4',
@@ -646,6 +649,8 @@ export default {
   random_seeded_int_tooltip: 'Gera um inteiro aleatório com uma semente.',
   to_number_tooltip:
     'Converte em outro tipo, como inteiro, decimal, texto, verdadeiro ou falso, ou binário. Um inteiro retira tudo o que vem depois do ponto decimal. Verdadeiro e falso tornam-se 1 e 0. Só o texto true ou false, ou um número, se torna verdadeiro ou falso; 0 é falso. Binário e hexadecimal precisam de um número inteiro e dão texto, com as letras hexadecimais em maiúsculas. Uma entrada vazia, ou algo que não encaixa no tipo, dá um vazio.', // ai
+  convert_using_tooltip:
+    'Converte um valor usando uma lista de pares. Obténs o lado direito do primeiro par em que a comparação do valor com o lado esquerdo é verdadeira, verificando de cima para baixo. Com = o texto ignora maiúsculas e os números correspondem pelo valor. Com < põe o mais pequeno primeiro, por isso 0.3 e depois 0.45. Se nenhum par servir, obténs o último valor. Usa + e - para adicionar ou remover pares.', // ai
 
   // Tooltip translations - Transform blocks
   move_by_xyz_tooltip: 'Move um objeto uma certa distância nas direções x, y e z.',

@@ -401,8 +401,7 @@ export default {
   table_add_row_end_option: 'al final', // ai
   table_add_row_at_option: 'en la fila', // ai
   table_add_column: 'añadir columna %1 a %2 con los valores %3', // ai
-  table_link_column: 'vincular %1 de %2 a %3', // ai
-  table_link_column_formula: '%1 para cada fila %2', // ai
+  table_link_column: 'vincular %1 de %2 con %3 a %4 %5', // ai
   table_delete_column: 'borrar columna %1 de %2', // ai
   table_delete_row: 'borrar %1 %2 %3 de %4', // ai
   table_delete_row_option: 'fila', // ai
@@ -460,6 +459,9 @@ export default {
   // Custom block translations - Math blocks
   random_seeded_int: 'numero entero aleatorio de %1 a %2 semilla: %3', // human
   to_number: 'convertir %1 a %2', // human
+  convert_using_convert: 'convertir', // ai
+  convert_using_using: 'usando', // ai
+  convert_using_otherwise: 'si no', // ai
   convert_range: 'convertir %1 de mínimo %2 máximo %3 a mínimo %4 máximo %5', // ai
 
   // Custom block translations - Transform blocks
@@ -774,6 +776,8 @@ export default {
   random_seeded_int_tooltip: 'Generar un numero entero aleatorio con una semilla.', // human
   to_number_tooltip:
     'Convierte a otro tipo, como un entero, un decimal, texto, verdadero o falso, o binario. Un entero quita lo que va después del punto decimal. Verdadero y falso se convierten en 1 y 0. Solo el texto true o false, o un número, se convierte en verdadero o falso; 0 es falso. Binario y hexadecimal necesitan un número entero y dan texto, con las letras hexadecimales en mayúsculas. Una entrada vacía, o algo que no encaja con el tipo, da un vacío.', // ai
+  convert_using_tooltip:
+    'Convierte un valor usando una lista de pares. Obtienes el lado derecho del primer par en el que la comparación del valor con el lado izquierdo es verdadera, revisando de arriba abajo. Con = el texto no distingue mayúsculas y los números coinciden por su valor. Con < pon primero el más pequeño, por ejemplo 0.3 y luego 0.45. Si ningún par encaja, obtienes el último valor. Usa + y - para añadir o quitar pares.', // ai
   convert_range_tooltip:
     'Cambia un número de un rango a otro. El primer mínimo se convierte en el segundo mínimo, el primer máximo en el segundo máximo, y los números intermedios se reparten de forma uniforme. Los números fuera del primer rango dan números fuera del segundo rango. Usa limitar para mantenerlos dentro.', // ai
 

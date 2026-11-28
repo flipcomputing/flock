@@ -150,6 +150,77 @@ export function runMathTests(flock) {
       });
     });
 
+    describe('convertUsing', function () {
+      const pairs = [
+        ['fast', 'green'],
+        ['OK', 'yellow'],
+      ];
+
+      it('gives the right side of the first matching pair', function () {
+        expect(flock.convertUsing('fast', pairs, 'orange')).to.equal('green');
+        expect(flock.convertUsing('OK', pairs, 'orange')).to.equal('yellow');
+      });
+
+      it('gives the otherwise value when nothing matches', function () {
+        expect(flock.convertUsing('slow', pairs, 'orange')).to.equal('orange');
+        expect(flock.convertUsing('', pairs, 'orange')).to.equal('orange');
+        expect(flock.convertUsing('fast', [], 'orange')).to.equal('orange');
+      });
+
+      it('matches text ignoring capitals and spaces, and numbers by value', function () {
+        expect(flock.convertUsing(' FAST ', pairs, 'orange')).to.equal('green');
+        expect(flock.convertUsing(5, [['5.0', 'five']], 'none')).to.equal('five');
+        expect(flock.convertUsing('1,000', [[1000, 'thousand']], 'none')).to.equal('thousand');
+        expect(flock.convertUsing(true, [['true', 'yes']], 'no')).to.equal('yes');
+      });
+
+      it('gives the first pair the value is less than with <', function () {
+        const bands = [
+          [0.3, 'fast'],
+          [0.45, 'OK'],
+        ];
+        expect(flock.convertUsing(0.29, bands, 'slow', 'LT')).to.equal('fast');
+        expect(flock.convertUsing(0.3, bands, 'slow', 'LT')).to.equal('OK');
+        expect(flock.convertUsing('0.44', bands, 'slow', 'LT')).to.equal('OK');
+        expect(flock.convertUsing(0.45, bands, 'slow', 'LT')).to.equal('slow');
+        expect(flock.convertUsing(0.3, bands, 'slow', 'LTE')).to.equal('fast');
+      });
+
+      it('counts down from the top with > and >=', function () {
+        const grades = [
+          [90, 'A'],
+          [80, 'B'],
+        ];
+        expect(flock.convertUsing(95, grades, 'C', 'GT')).to.equal('A');
+        expect(flock.convertUsing(90, grades, 'C', 'GT')).to.equal('B');
+        expect(flock.convertUsing(90, grades, 'C', 'GTE')).to.equal('A');
+        expect(flock.convertUsing(70, grades, 'C', 'GTE')).to.equal('C');
+      });
+
+      it('gives the first pair that does not match with not equal', function () {
+        expect(
+          flock.convertUsing(
+            'cat',
+            [
+              ['cat', 'same'],
+              ['dog', 'other'],
+            ],
+            'none',
+            'NEQ'
+          )
+        ).to.equal('other');
+      });
+
+      it('orders text alphabetically and never compares text with numbers', function () {
+        expect(flock.convertUsing('apple', [['m', 'first half']], 'second half', 'LT')).to.equal(
+          'first half'
+        );
+        expect(flock.convertUsing('fast', [[0.3, 'fast']], 'none', 'LT')).to.equal('none');
+        expect(flock.convertUsing('', [[0.3, 'fast']], 'none', 'LT')).to.equal('none');
+        expect(flock.convertUsing(true, [[2, 'small']], 'none', 'LT')).to.equal('none');
+      });
+    });
+
     describe('convertRange', function () {
       it('should spread numbers evenly from one range to another', function () {
         expect(flock.convertRange(50, 0, 100, 0, 10)).to.equal(5);

@@ -4682,6 +4682,20 @@ const toolboxData = {
         ]
       : []),
     { kind: 'block', type: 'to_number', keyword: 'ton' },
+    {
+      kind: 'block',
+      type: 'convert_using',
+      keyword: 'switch',
+      extraState: { pairs: 2 },
+      inputs: {
+        VALUE: { shadow: { type: 'text', fields: { TEXT: 'fast' } } },
+        FROM0: { shadow: { type: 'text', fields: { TEXT: 'fast' } } },
+        TO0: { shadow: { type: 'colour', fields: { COLOR: '#2ecc71' } } },
+        FROM1: { shadow: { type: 'text', fields: { TEXT: 'OK' } } },
+        TO1: { shadow: { type: 'colour', fields: { COLOR: '#f1c40f' } } },
+        OTHERWISE: { shadow: { type: 'colour', fields: { COLOR: '#e67e22' } } },
+      },
+    },
     toolboxVariables,
     toolboxLists,
     ...(isFeatureEnabled('dataScience') ? [toolboxTables] : []),

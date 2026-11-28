@@ -662,6 +662,7 @@ export const flockSandbox = {
       seededRandom: this.seededRandom?.bind(this),
       convertRange: this.convertRange?.bind(this),
       toNumber: this.toNumber?.bind(this),
+      convertUsing: this.convertUsing?.bind(this),
       randomColour: this.randomColour?.bind(this),
       scale: this.scale?.bind(this),
       resize: this.resize?.bind(this),

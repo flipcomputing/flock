@@ -363,6 +363,9 @@ export default {
   // Custom block translations - Math blocks
   random_seeded_int: 'entier aléatoire de %1 à %2 graine : %3',
   to_number: 'convertir %1 en %2',
+  convert_using_convert: 'convertir', // ai
+  convert_using_using: 'avec', // ai
+  convert_using_otherwise: 'sinon', // ai
 
   // Custom block translations - Transform blocks
   move_by_xyz: 'changer la position de %1 de x: %2 y: %3 z: %4',
@@ -648,6 +651,8 @@ export default {
   random_seeded_int_tooltip: 'Génère un entier aléatoire avec une graine.',
   to_number_tooltip:
     'Convertit vers un autre type, comme un entier, un décimal, du texte, vrai ou faux, ou le binaire. Un entier enlève tout ce qui suit la virgule. Vrai et faux deviennent 1 et 0. Seul le texte true ou false, ou un nombre, devient vrai ou faux ; 0 est faux. Binaire et hexadécimal demandent un nombre entier et donnent du texte, avec les lettres hexadécimales en majuscules. Une entrée vide, ou ce qui ne correspond pas au type, donne un vide.', // ai
+  convert_using_tooltip:
+    'Convertit une valeur avec une liste de paires. Tu obtiens le côté droit de la première paire où la comparaison de la valeur avec le côté gauche est vraie, en vérifiant de haut en bas. Avec = le texte ne tient pas compte des majuscules et les nombres correspondent selon leur valeur. Avec < mets le plus petit en premier, donc 0.3 puis 0.45. Si aucune paire ne convient, tu obtiens la dernière valeur. Utilise + et - pour ajouter ou enlever des paires.', // ai
 
   // Tooltip translations - Transform blocks
   move_by_xyz_tooltip: "Déplace un objet d'une certaine valeur selon X, Y et Z.",

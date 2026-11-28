@@ -363,6 +363,9 @@ export default {
   // Math blocks
   random_seeded_int: 'zufällige Ganzzahl von %1 bis %2 Seed: %3',
   to_number: 'konvertiere %1 zu %2',
+  convert_using_convert: 'konvertiere', // ai
+  convert_using_using: 'mit', // ai
+  convert_using_otherwise: 'sonst', // ai
 
   // Transform blocks
   move_by_xyz: 'Position von %1 ändern um x: %2 y: %3 z: %4',
@@ -785,6 +788,8 @@ export default {
   random_seeded_int_tooltip: 'Erzeuge eine zufällige Ganzzahl mit Seed.',
   to_number_tooltip:
     'Konvertiert in einen anderen Typ, zum Beispiel Ganzzahl, Dezimalzahl, Text, wahr oder falsch, oder Binär. Eine Ganzzahl lässt alles nach dem Dezimalpunkt weg. Wahr und falsch werden zu 1 und 0. Nur der Text true oder false oder eine Zahl wird zu wahr oder falsch; 0 ist falsch. Binär und Hexadezimal brauchen eine ganze Zahl und ergeben Text, mit Großbuchstaben für Hexadezimal. Leere Eingaben oder alles, was nicht zum Typ passt, ergeben ein leeres Feld.', // ai
+  convert_using_tooltip:
+    'Konvertiert einen Wert mit einer Liste von Paaren. Du bekommst die rechte Seite des ersten Paares, bei dem der Vergleich des Werts mit der linken Seite wahr ist, von oben geprüft. Bei = zählt Groß- und Kleinschreibung nicht und Zahlen passen nach ihrem Wert. Bei < setze das kleinste zuerst, also 0.3 und dann 0.45. Passt kein Paar, bekommst du den letzten Wert. Mit + und - fügst du Paare hinzu oder entfernst sie.', // ai
 
   // Tooltip translations - Transform blocks
   move_by_xyz_tooltip: 'Bewege ein Objekt um den angegebenen Wert in X-, Y- und Z-Richtung.',

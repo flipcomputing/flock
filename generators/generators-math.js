@@ -59,6 +59,21 @@ export function registerMathGenerators(javascriptGenerator) {
     return [`toNumber(${string}, '${type}')`, javascriptGenerator.ORDER_FUNCTION_CALL];
   };
 
+  javascriptGenerator.forBlock['convert_using'] = function (block) {
+    const code = (name) =>
+      javascriptGenerator.valueToCode(block, name, javascriptGenerator.ORDER_NONE) || "''";
+    const pairs = [];
+    for (let i = 0; i < (block.pairCount_ ?? 0); i++) {
+      pairs.push(`[${code(`FROM${i}`)}, ${code(`TO${i}`)}]`);
+    }
+    const op = block.getFieldValue('OP');
+    const compare = ['NEQ', 'LT', 'LTE', 'GT', 'GTE'].includes(op) ? `, '${op}'` : '';
+    return [
+      `convertUsing(${code('VALUE')}, [${pairs.join(', ')}], ${code('OTHERWISE')}${compare})`,
+      javascriptGenerator.ORDER_FUNCTION_CALL,
+    ];
+  };
+
   javascriptGenerator.forBlock['convert_range'] = function (block) {
     const args = ['VALUE', 'FROM_LOW', 'FROM_HIGH', 'TO_LOW', 'TO_HIGH'].map(
       (name) => javascriptGenerator.valueToCode(block, name, javascriptGenerator.ORDER_NONE) || '0'

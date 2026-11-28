@@ -23,6 +23,36 @@ function valueText(value) {
   }
 }
 
+function sameValue(a, b) {
+  const x = typeof a === 'boolean' ? null : parseNumberText(a);
+  const y = typeof b === 'boolean' ? null : parseNumberText(b);
+  if (x !== null && y !== null) return x === y;
+  return valueText(a).trim().toLowerCase() === valueText(b).trim().toLowerCase();
+}
+
+function compareValues(a, b, op) {
+  if (op === 'EQ') return sameValue(a, b);
+  if (op === 'NEQ') return !sameValue(a, b);
+  const x = typeof a === 'boolean' ? null : parseNumberText(a);
+  const y = typeof b === 'boolean' ? null : parseNumberText(b);
+  let order;
+  if (x !== null && y !== null) {
+    order = x - y;
+  } else {
+    const left = valueText(a).trim();
+    const right = valueText(b).trim();
+    if (x !== null || y !== null || left === '' || right === '') return false;
+    order = left.localeCompare(right, undefined, { sensitivity: 'base', numeric: true });
+  }
+  const tests = {
+    LT: order < 0,
+    LTE: order <= 0,
+    GT: order > 0,
+    GTE: order >= 0,
+  };
+  return tests[op] ?? false;
+}
+
 function toBoolean(value) {
   if (typeof value === 'boolean') return value;
   const text = typeof value === 'string' ? value.trim().toLowerCase() : null;
@@ -77,6 +107,12 @@ export const flockMath = {
       return Number.isSafeInteger(number) ? number.toString(RADIX[type]).toUpperCase() : '';
     }
     return type === 'INT' ? Math.trunc(number) : number;
+  },
+  convertUsing(value, pairs, otherwise, op = 'EQ') {
+    const match = (Array.isArray(pairs) ? pairs : []).find(
+      (pair) => Array.isArray(pair) && compareValues(value, pair[0], op)
+    );
+    return match ? match[1] : otherwise;
   },
   convertRange(value, fromLow, fromHigh, toLow, toHigh) {
     const [x, a, b, c, d] = [value, fromLow, fromHigh, toLow, toHigh].map(Number);

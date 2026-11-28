@@ -315,55 +315,47 @@
                             },
                             "VALUE": {
                               "block": {
-                                "type": "logic_ternary",
-                                "fields": {},
+                                "type": "convert_using",
+                                "fields": {
+                                  "OP": "LT"
+                                },
                                 "inputs": {
-                                  "IF": {
+                                  "VALUE": {
                                     "block": {
-                                      "type": "logic_compare",
-                                      "fields": {
-                                        "OP": "LT"
-                                      },
+                                      "type": "table_row_value",
+                                      "fields": {},
                                       "inputs": {
-                                        "A": {
-                                          "block": {
-                                            "type": "table_row_value",
-                                            "fields": {},
-                                            "inputs": {
-                                              "COLUMN": {
-                                                "shadow": {
-                                                  "type": "table_column_menu",
-                                                  "fields": {
-                                                    "COLUMN": "Seconds"
-                                                  }
-                                                }
-                                              },
-                                              "ROW": {
-                                                "block": {
-                                                  "type": "variables_get",
-                                                  "fields": {
-                                                    "VAR": {
-                                                      "id": "row-reaction-0001"
-                                                    }
-                                                  },
-                                                  "inputs": {}
-                                                }
-                                              }
+                                        "COLUMN": {
+                                          "shadow": {
+                                            "type": "table_column_menu",
+                                            "fields": {
+                                              "COLUMN": "Seconds"
                                             }
                                           }
                                         },
-                                        "B": {
-                                          "shadow": {
-                                            "type": "math_number",
+                                        "ROW": {
+                                          "block": {
+                                            "type": "variables_get",
                                             "fields": {
-                                              "NUM": 0.3
-                                            }
+                                              "VAR": {
+                                                "id": "row-reaction-0001"
+                                              }
+                                            },
+                                            "inputs": {}
                                           }
                                         }
                                       }
                                     }
                                   },
-                                  "THEN": {
+                                  "FROM0": {
+                                    "shadow": {
+                                      "type": "math_number",
+                                      "fields": {
+                                        "NUM": 0.3
+                                      }
+                                    }
+                                  },
+                                  "TO0": {
                                     "shadow": {
                                       "type": "text",
                                       "fields": {
@@ -371,75 +363,33 @@
                                       }
                                     }
                                   },
-                                  "ELSE": {
-                                    "block": {
-                                      "type": "logic_ternary",
-                                      "fields": {},
-                                      "inputs": {
-                                        "IF": {
-                                          "block": {
-                                            "type": "logic_compare",
-                                            "fields": {
-                                              "OP": "LT"
-                                            },
-                                            "inputs": {
-                                              "A": {
-                                                "block": {
-                                                  "type": "table_row_value",
-                                                  "fields": {},
-                                                  "inputs": {
-                                                    "COLUMN": {
-                                                      "shadow": {
-                                                        "type": "table_column_menu",
-                                                        "fields": {
-                                                          "COLUMN": "Seconds"
-                                                        }
-                                                      }
-                                                    },
-                                                    "ROW": {
-                                                      "block": {
-                                                        "type": "variables_get",
-                                                        "fields": {
-                                                          "VAR": {
-                                                            "id": "row-reaction-0001"
-                                                          }
-                                                        },
-                                                        "inputs": {}
-                                                      }
-                                                    }
-                                                  }
-                                                }
-                                              },
-                                              "B": {
-                                                "shadow": {
-                                                  "type": "math_number",
-                                                  "fields": {
-                                                    "NUM": 0.45
-                                                  }
-                                                }
-                                              }
-                                            }
-                                          }
-                                        },
-                                        "THEN": {
-                                          "shadow": {
-                                            "type": "text",
-                                            "fields": {
-                                              "TEXT": "OK"
-                                            }
-                                          }
-                                        },
-                                        "ELSE": {
-                                          "shadow": {
-                                            "type": "text",
-                                            "fields": {
-                                              "TEXT": "slow"
-                                            }
-                                          }
-                                        }
+                                  "FROM1": {
+                                    "shadow": {
+                                      "type": "math_number",
+                                      "fields": {
+                                        "NUM": 0.45
+                                      }
+                                    }
+                                  },
+                                  "TO1": {
+                                    "shadow": {
+                                      "type": "text",
+                                      "fields": {
+                                        "TEXT": "OK"
+                                      }
+                                    }
+                                  },
+                                  "OTHERWISE": {
+                                    "shadow": {
+                                      "type": "text",
+                                      "fields": {
+                                        "TEXT": "slow"
                                       }
                                     }
                                   }
+                                },
+                                "extraState": {
+                                  "pairs": 2
                                 }
                               }
                             }
@@ -466,55 +416,45 @@
                                 },
                                 "VALUE": {
                                   "block": {
-                                    "type": "logic_ternary",
+                                    "type": "convert_using",
                                     "fields": {},
                                     "inputs": {
-                                      "IF": {
+                                      "VALUE": {
                                         "block": {
-                                          "type": "logic_compare",
-                                          "fields": {
-                                            "OP": "EQ"
-                                          },
+                                          "type": "table_row_value",
+                                          "fields": {},
                                           "inputs": {
-                                            "A": {
-                                              "block": {
-                                                "type": "table_row_value",
-                                                "fields": {},
-                                                "inputs": {
-                                                  "COLUMN": {
-                                                    "shadow": {
-                                                      "type": "table_column_menu",
-                                                      "fields": {
-                                                        "COLUMN": "Rating"
-                                                      }
-                                                    }
-                                                  },
-                                                  "ROW": {
-                                                    "block": {
-                                                      "type": "variables_get",
-                                                      "fields": {
-                                                        "VAR": {
-                                                          "id": "row-reaction-0001"
-                                                        }
-                                                      },
-                                                      "inputs": {}
-                                                    }
-                                                  }
+                                            "COLUMN": {
+                                              "shadow": {
+                                                "type": "table_column_menu",
+                                                "fields": {
+                                                  "COLUMN": "Rating"
                                                 }
                                               }
                                             },
-                                            "B": {
-                                              "shadow": {
-                                                "type": "text",
+                                            "ROW": {
+                                              "block": {
+                                                "type": "variables_get",
                                                 "fields": {
-                                                  "TEXT": "fast"
-                                                }
+                                                  "VAR": {
+                                                    "id": "row-reaction-0001"
+                                                  }
+                                                },
+                                                "inputs": {}
                                               }
                                             }
                                           }
                                         }
                                       },
-                                      "THEN": {
+                                      "FROM0": {
+                                        "shadow": {
+                                          "type": "text",
+                                          "fields": {
+                                            "TEXT": "fast"
+                                          }
+                                        }
+                                      },
+                                      "TO0": {
                                         "shadow": {
                                           "type": "colour",
                                           "fields": {
@@ -522,75 +462,33 @@
                                           }
                                         }
                                       },
-                                      "ELSE": {
-                                        "block": {
-                                          "type": "logic_ternary",
-                                          "fields": {},
-                                          "inputs": {
-                                            "IF": {
-                                              "block": {
-                                                "type": "logic_compare",
-                                                "fields": {
-                                                  "OP": "EQ"
-                                                },
-                                                "inputs": {
-                                                  "A": {
-                                                    "block": {
-                                                      "type": "table_row_value",
-                                                      "fields": {},
-                                                      "inputs": {
-                                                        "COLUMN": {
-                                                          "shadow": {
-                                                            "type": "table_column_menu",
-                                                            "fields": {
-                                                              "COLUMN": "Rating"
-                                                            }
-                                                          }
-                                                        },
-                                                        "ROW": {
-                                                          "block": {
-                                                            "type": "variables_get",
-                                                            "fields": {
-                                                              "VAR": {
-                                                                "id": "row-reaction-0001"
-                                                              }
-                                                            },
-                                                            "inputs": {}
-                                                          }
-                                                        }
-                                                      }
-                                                    }
-                                                  },
-                                                  "B": {
-                                                    "shadow": {
-                                                      "type": "text",
-                                                      "fields": {
-                                                        "TEXT": "OK"
-                                                      }
-                                                    }
-                                                  }
-                                                }
-                                              }
-                                            },
-                                            "THEN": {
-                                              "shadow": {
-                                                "type": "colour",
-                                                "fields": {
-                                                  "COLOR": "#f1c40f"
-                                                }
-                                              }
-                                            },
-                                            "ELSE": {
-                                              "shadow": {
-                                                "type": "colour",
-                                                "fields": {
-                                                  "COLOR": "#e67e22"
-                                                }
-                                              }
-                                            }
+                                      "FROM1": {
+                                        "shadow": {
+                                          "type": "text",
+                                          "fields": {
+                                            "TEXT": "OK"
+                                          }
+                                        }
+                                      },
+                                      "TO1": {
+                                        "shadow": {
+                                          "type": "colour",
+                                          "fields": {
+                                            "COLOR": "#f1c40f"
+                                          }
+                                        }
+                                      },
+                                      "OTHERWISE": {
+                                        "shadow": {
+                                          "type": "colour",
+                                          "fields": {
+                                            "COLOR": "#e67e22"
                                           }
                                         }
                                       }
+                                    },
+                                    "extraState": {
+                                      "pairs": 2
                                     }
                                   }
                                 }

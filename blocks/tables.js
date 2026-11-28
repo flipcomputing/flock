@@ -608,12 +608,9 @@ export function defineTableBlocks() {
       args0: [
         { type: 'input_value', name: 'NAME', check: 'String' },
         tableField(),
-        { type: 'input_end_row' },
-      ],
-      message1: translate('table_link_column_formula'),
-      args1: [
-        { type: 'input_value', name: 'VALUE' },
         { type: 'field_variable', name: 'VAR', variable: 'row' },
+        { type: 'input_end_row' },
+        { type: 'input_value', name: 'VALUE' },
       ],
       previousStatement: null,
       nextStatement: null,

@@ -1195,6 +1195,8 @@ export function runTablesTests(flock) {
         expect(code).to.include(`Reactions = createTable("Reactions", ['Try', 'Milliseconds']);`);
         const linked = [...code.matchAll(/linkTableColumn\(Reactions, '(\w+)'/g)];
         expect(linked.map((match) => match[1])).to.deep.equal(['Seconds', 'Rating', 'Colour']);
+        expect(code).to.match(/linkTableColumn\(Reactions, 'Colour', \(\w+\) => \(convertUsing\(/);
+        expect(code).to.match(/linkTableColumn\(Reactions, 'Rating', .*'LT'\)\)\);/);
         expect(code).to.match(/addTableRow\(Reactions, \[\w+, \w+\]\)/);
         expect(code).to.match(
           /insertTableRow\(Reactions, 0, \['Average', .*getTableColumn\(Reactions, 'Milliseconds'\)/

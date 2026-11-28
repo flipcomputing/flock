@@ -5,6 +5,8 @@ import { ScrollBlockDragger, ScrollMetricsManager } from '@blockly/plugin-scroll
 import { toolbox, categoryColours } from '../toolbox.js';
 import { translate, getTooltip, getDropdownOption, getOption } from '../main/translation.js';
 import { isFeatureEnabled } from '../main/features.js';
+import { createPlusField } from '@blockly/block-plus-minus/src/field_plus.js';
+import { createMinusField } from '@blockly/block-plus-minus/src/field_minus.js';
 import { flock } from '../flock.js';
 
 import {
@@ -1983,6 +1985,82 @@ export function defineBlocks() {
       });
       this.setHelpUrl(getHelpUrlFor(this.type));
       this.setStyle('variable_blocks');
+    },
+  };
+
+  Blockly.Blocks['convert_using'] = {
+    init: function () {
+      this.pairCount_ = 0;
+      this.appendValueInput('VALUE')
+        .appendField(createPlusField(), 'PLUS')
+        .appendField(translate('convert_using_convert'));
+      this.appendEndRowInput('USING')
+        .appendField(translate('convert_using_using'))
+        .appendField(
+          new Blockly.FieldDropdown([
+            ['=', 'EQ'],
+            ['\u2260', 'NEQ'],
+            ['\u200F<', 'LT'],
+            ['\u200F\u2264', 'LTE'],
+            ['\u200F>', 'GT'],
+            ['\u200F\u2265', 'GTE'],
+          ]),
+          'OP'
+        );
+      this.appendValueInput('OTHERWISE').appendField(translate('convert_using_otherwise'));
+      this.setInputsInline(true);
+      this.setOutput(true, null);
+      this.setTooltip(getTooltip('convert_using'));
+      this.setHelpUrl(getHelpUrlFor(this.type));
+      this.setStyle('variable_blocks');
+      this.updateShape_(2);
+    },
+    saveExtraState: function () {
+      return { pairs: this.pairCount_ };
+    },
+    loadExtraState: function (state) {
+      this.updateShape_(Math.max(1, Math.floor(Number(state?.pairs)) || 1));
+    },
+    updateShape_: function (count) {
+      while (this.pairCount_ < count) this.addPair_();
+      while (this.pairCount_ > count) this.removePair_();
+      this.updateMinus_();
+    },
+    plus: function () {
+      this.addPair_();
+      const from = this.getInput(`FROM${this.pairCount_ - 1}`).connection;
+      if (!from.targetBlock()) {
+        const equality = ['EQ', 'NEQ'].includes(this.getFieldValue('OP'));
+        const shadow = this.workspace.newBlock(equality ? 'text' : 'math_number');
+        shadow.setShadow(true);
+        shadow.initSvg?.();
+        shadow.render?.();
+        from.connect(shadow.outputConnection);
+      }
+      this.updateMinus_();
+    },
+    minus: function () {
+      if (this.pairCount_ <= 1) return;
+      this.removePair_();
+      this.updateMinus_();
+    },
+    addPair_: function () {
+      const i = this.pairCount_;
+      this.appendValueInput(`FROM${i}`);
+      this.appendValueInput(`TO${i}`).appendField('→');
+      this.appendEndRowInput(`ROW${i}`);
+      for (const part of ['FROM', 'TO', 'ROW']) this.moveInputBefore(`${part}${i}`, 'OTHERWISE');
+      this.pairCount_++;
+    },
+    removePair_: function () {
+      this.pairCount_--;
+      for (const part of ['FROM', 'TO', 'ROW']) this.removeInput(`${part}${this.pairCount_}`);
+    },
+    updateMinus_: function () {
+      const minus = this.getField('MINUS');
+      const input = this.getInput('VALUE');
+      if (!minus && this.pairCount_ > 1) input.insertFieldAt(1, createMinusField(), 'MINUS');
+      else if (minus && this.pairCount_ <= 1) input.removeField('MINUS');
     },
   };
 

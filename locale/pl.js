@@ -364,6 +364,9 @@ export default {
   // Custom block translations - Math blocks
   random_seeded_int: 'losowa liczba całkowita od %1 do %2 z ziarnem: %3',
   to_number: 'konwertuj %1 na %2',
+  convert_using_convert: 'konwertuj', // ai
+  convert_using_using: 'według', // ai
+  convert_using_otherwise: 'w innym razie', // ai
 
   // Custom block translations - Transform blocks
   move_by_xyz: 'zmień pozycję %1 o x: %2, y: %3, z: %4',
@@ -639,6 +642,8 @@ export default {
   random_seeded_int_tooltip: 'Wygeneruj losową liczbę całkowitą z ziarnem.',
   to_number_tooltip:
     'Konwertuje na inny typ, na przykład liczbę całkowitą, dziesiętną, tekst, prawdę lub fałsz albo system dwójkowy. Liczba całkowita pomija wszystko po przecinku. Prawda i fałsz stają się 1 i 0. Tylko tekst true lub false albo liczba staje się prawdą lub fałszem; 0 to fałsz. System dwójkowy i szesnastkowy wymagają liczby całkowitej i dają tekst, z wielkimi literami w szesnastkowym. Puste wejście lub coś, co nie pasuje do typu, daje puste pole.', // ai
+  convert_using_tooltip:
+    'Konwertuje wartość za pomocą listy par. Dostajesz prawą stronę pierwszej pary, dla której porównanie wartości z lewą stroną jest prawdziwe, sprawdzając od góry. Przy = tekst nie zważa na wielkie litery, a liczby pasują według wartości. Przy < wpisz najmniejszą jako pierwszą, czyli 0.3, a potem 0.45. Jeśli żadna para nie pasuje, dostajesz ostatnią wartość. Użyj + i -, aby dodać lub usunąć pary.', // ai
 
   // Tooltip translations - Transform blocks
   move_by_xyz_tooltip: 'Przesuń obiekt o określoną wartość w osiach x, y i z.',

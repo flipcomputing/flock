@@ -443,8 +443,7 @@ export default {
   table_add_row_end_option: 'at end',
   table_add_row_at_option: 'at row',
   table_add_column: 'add column %1 to %2 with values %3',
-  table_link_column: 'link %1 of %2 to %3',
-  table_link_column_formula: '%1 for each row %2',
+  table_link_column: 'link %1 of %2 with %3 to %4 %5',
   table_delete_column: 'delete column %1 from %2',
   table_delete_row: 'delete %1 %2 %3 from %4',
   table_delete_row_option: 'row',
@@ -502,6 +501,9 @@ export default {
   // Custom block translations - Math blocks
   random_seeded_int: 'random integer from %1 to %2 seed: %3',
   to_number: 'convert %1 to %2',
+  convert_using_convert: 'convert',
+  convert_using_using: 'using',
+  convert_using_otherwise: 'otherwise',
   convert_range: 'convert %1 from low %2 high %3 to low %4 high %5',
   vector: 'vector x: %1 y: %2 z: %3',
 
@@ -841,6 +843,8 @@ export default {
   random_seeded_int_tooltip: 'Generate a random integer with a seed.',
   to_number_tooltip:
     'Convert to another type, such as an integer, a decimal, text, true or false, or binary. An integer drops anything after the decimal point. True and false become 1 and 0. Only the text true or false, or a number, becomes true or false; 0 is false. Binary and hexadecimal need a whole number and give text, with hexadecimal letters in capitals. Empty input, or anything that does not fit the type, gives a blank.',
+  convert_using_tooltip:
+    'Convert a value using a list of pairs. You get the right side of the first pair where the value compares true with the left side, checked from the top. With = text ignores capital letters and numbers match by value. With < put the smallest first, so 0.3 then 0.45. If no pair fits, you get the last value. Use + and - to add or remove pairs.',
   convert_range_tooltip:
     'Change a number from one range to another. The first low becomes the second low, the first high becomes the second high, and numbers in between are spread evenly. Numbers outside the first range give numbers outside the second range. Use constrain to keep them inside.',
   vector_tooltip: 'A position or direction made from x, y and z.',
