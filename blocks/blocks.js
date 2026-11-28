@@ -1948,6 +1948,25 @@ export function defineBlocks() {
     },
   };
 
+  Blockly.Blocks['convert_range'] = {
+    init: function () {
+      this.jsonInit({
+        type: 'convert_range',
+        message0: translate('convert_range'),
+        args0: ['VALUE', 'FROM_LOW', 'FROM_HIGH', 'TO_LOW', 'TO_HIGH'].map((name) => ({
+          type: 'input_value',
+          name,
+          check: 'Number',
+        })),
+        inputsInline: true,
+        output: 'Number',
+        tooltip: getTooltip('convert_range'),
+      });
+      this.setHelpUrl(getHelpUrlFor(this.type));
+      this.setStyle('math_blocks');
+    },
+  };
+
   Blockly.Blocks['keyword'] = {
     init: function () {
       this.appendDummyInput().appendField(new FieldBlockSearch(''), 'KEYWORD');

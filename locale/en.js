@@ -494,6 +494,7 @@ export default {
   // Custom block translations - Math blocks
   random_seeded_int: 'random integer from %1 to %2 seed: %3',
   to_number: 'convert %1 to %2',
+  convert_range: 'convert %1 from low %2 high %3 to low %4 high %5',
   vector: 'vector x: %1 y: %2 z: %3',
 
   // Custom block translations - Transform blocks
@@ -831,6 +832,8 @@ export default {
   // Tooltip translations - Math blocks
   random_seeded_int_tooltip: 'Generate a random integer with a seed.',
   to_number_tooltip: 'Convert a string to an integer or float.',
+  convert_range_tooltip:
+    'Change a number from one range to another. The first low becomes the second low, the first high becomes the second high, and numbers in between are spread evenly. Numbers outside the first range give numbers outside the second range. Use constrain to keep them inside.',
   vector_tooltip: 'A position or direction made from x, y and z.',
 
   // Tooltip translations - Transform blocks

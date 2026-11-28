@@ -33,4 +33,9 @@ export const flockMath = {
     const result = Math.floor(random * (to - from + 1)) + from;
     return result;
   },
+  convertRange(value, fromLow, fromHigh, toLow, toHigh) {
+    const [x, a, b, c, d] = [value, fromLow, fromHigh, toLow, toHigh].map(Number);
+    if (a === b) return c;
+    return c + ((x - a) * (d - c)) / (b - a);
+  },
 };

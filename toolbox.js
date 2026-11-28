@@ -4807,6 +4807,20 @@ const toolboxMath = {
     },
     {
       kind: 'block',
+      type: 'convert_range',
+      keyword: 'range',
+      inputs: Object.fromEntries(
+        [
+          ['VALUE', 50],
+          ['FROM_LOW', 0],
+          ['FROM_HIGH', 100],
+          ['TO_LOW', 0],
+          ['TO_HIGH', 10],
+        ].map(([name, NUM]) => [name, { shadow: { type: 'math_number', fields: { NUM } } }])
+      ),
+    },
+    {
+      kind: 'block',
       type: 'math_constant',
       keyword: 'pi',
     },

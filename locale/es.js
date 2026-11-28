@@ -452,6 +452,7 @@ export default {
   // Custom block translations - Math blocks
   random_seeded_int: 'numero entero aleatorio de %1 a %2 semilla: %3', // human
   to_number: 'convertir %1 a %2', // human
+  convert_range: 'convertir %1 de mínimo %2 máximo %3 a mínimo %4 máximo %5', // ai
 
   // Custom block translations - Transform blocks
   move_by_xyz: 'cambiar posición de %1 por x: %2 y: %3 z: %4', // human
@@ -764,6 +765,8 @@ export default {
   // Tooltip translations - Math blocks
   random_seeded_int_tooltip: 'Generar un numero entero aleatorio con una semilla.', // human
   to_number_tooltip: 'Convertir una cadena a un numero entero o un flotante', // human
+  convert_range_tooltip:
+    'Cambia un número de un rango a otro. El primer mínimo se convierte en el segundo mínimo, el primer máximo en el segundo máximo, y los números intermedios se reparten de forma uniforme. Los números fuera del primer rango dan números fuera del segundo rango. Usa limitar para mantenerlos dentro.', // ai
 
   // Tooltip translations - Transform blocks
   move_by_xyz_tooltip: 'Mueve un objeto cierta cantidad en direcciones x, y, y z.', // human

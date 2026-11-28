@@ -71,5 +71,31 @@ export function runMathTests(flock) {
         }
       });
     });
+
+    describe('convertRange', function () {
+      it('should spread numbers evenly from one range to another', function () {
+        expect(flock.convertRange(50, 0, 100, 0, 10)).to.equal(5);
+        expect(flock.convertRange(100, 0, 100, 32, 212)).to.equal(212);
+        expect(flock.convertRange(0, 0, 100, 32, 212)).to.equal(32);
+      });
+
+      it('should not clamp numbers outside the first range', function () {
+        expect(flock.convertRange(150, 0, 100, 0, 10)).to.equal(15);
+        expect(flock.convertRange(-50, 0, 100, 0, 10)).to.equal(-5);
+      });
+
+      it('should handle reversed ranges', function () {
+        expect(flock.convertRange(25, 0, 100, 100, 0)).to.equal(75);
+        expect(flock.convertRange(75, 100, 0, 0, 10)).to.equal(2.5);
+      });
+
+      it('should give the second low when the first range has no width', function () {
+        expect(flock.convertRange(7, 5, 5, 1, 9)).to.equal(1);
+      });
+
+      it('should accept number text such as table cells', function () {
+        expect(flock.convertRange('50', '0', '100', '0', '10')).to.equal(5);
+      });
+    });
   });
 }

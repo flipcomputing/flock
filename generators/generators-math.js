@@ -57,6 +57,13 @@ export function registerMathGenerators(javascriptGenerator) {
     return [code, javascriptGenerator.ORDER_NONE];
   };
 
+  javascriptGenerator.forBlock['convert_range'] = function (block) {
+    const args = ['VALUE', 'FROM_LOW', 'FROM_HIGH', 'TO_LOW', 'TO_HIGH'].map(
+      (name) => javascriptGenerator.valueToCode(block, name, javascriptGenerator.ORDER_NONE) || '0'
+    );
+    return [`convertRange(${args.join(', ')})`, javascriptGenerator.ORDER_FUNCTION_CALL];
+  };
+
   // Min and max of a list: spread instead of Blockly's `.apply`, which the sandbox refuses
   const blocklyOnList = javascriptGenerator.forBlock['math_on_list'];
   javascriptGenerator.forBlock['math_on_list'] = function (block, generator) {
