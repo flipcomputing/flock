@@ -110,6 +110,12 @@ const ALL_EXAMPLES = [
     category: 'data',
     feature: 'dataScience',
   },
+  {
+    i18nKey: 'reaction_time',
+    file: 'examples/reaction_time.flock',
+    category: 'data',
+    feature: 'dataScience',
+  },
   { i18nKey: 'pendant', file: 'examples/pendant.flock', category: 'xr' },
   {
     i18nKey: 'flockxr_keyring',

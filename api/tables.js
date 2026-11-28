@@ -266,17 +266,73 @@ export function uniqueColumnNames(columns, onRenamed = () => {}) {
   return result;
 }
 
+function linkedColumns(table) {
+  return new Set(
+    table.formulas.map(({ column }) => table.columns.indexOf(column)).filter((c) => c !== -1)
+  );
+}
+
 function rowFrom(api, name, table, values) {
   const given = Array.isArray(values) ? values : [values];
   const count = table.columns.length;
-  if (given.length !== count) {
+  const linked = linkedColumns(table);
+  const all = table.columns.map((_, c) => c);
+  const slots =
+    linked.size && given.length === count - linked.size ? all.filter((c) => !linked.has(c)) : all;
+  if (given.length !== slots.length) {
     report(api, 'table_row_length', { table: name, given: given.length, count });
   }
-  const row = [];
-  for (let i = 0; i < count; i++) {
-    row.push(i < given.length ? typed(api, name, table, i, given[i]) : '');
-  }
+  const row = all.map(() => '');
+  slots.forEach((c, i) => {
+    if (i < given.length) row[c] = typed(api, name, table, c, given[i]);
+  });
   return row;
+}
+
+function recalculate(name, table, only) {
+  if (table.formulas.length === 0 || table.recalculating) return;
+  const rows = only === undefined ? table.rows.map((_, r) => r) : [only];
+  table.recalculating = true;
+  try {
+    for (const { column, formula } of table.formulas) {
+      const c = table.columns.indexOf(column);
+      if (c === -1) continue;
+      for (const r of rows) {
+        if (!table.rows[r]) continue;
+        let result;
+        try {
+          result = formula(rowOf(name, table, r));
+        } catch {
+          result = '';
+        }
+        table.rows[r][c] = typed('linkTableColumn', name, table, c, result);
+      }
+    }
+  } finally {
+    table.recalculating = false;
+  }
+}
+
+function refuseLinked(api, table, name, c) {
+  if (!linkedColumns(table).has(c)) return false;
+  report(api, 'table_column_linked', { table: name, column: table.columns[c] });
+  return true;
+}
+
+function appendColumn(api, name, table, column, values) {
+  const columns = uniqueColumns(api, name, [...table.columns, column]);
+  const count = table.rows.length;
+  const given = values === undefined ? null : Array.isArray(values) ? values : [values];
+  if (given && given.length !== count) {
+    report(api, 'table_column_length', { table: name, given: given.length, count });
+  }
+  table.columns = columns;
+  table.specs.push({ ...columnSpec(column), name: columns.at(-1) });
+  const c = columns.length - 1;
+  table.rows.forEach((row, i) =>
+    row.push(given && i < given.length ? typed(api, name, table, c, given[i]) : '')
+  );
+  return columns.at(-1);
 }
 
 function typed(api, name, table, c, value) {
@@ -317,7 +373,7 @@ export const flockTables = {
     const specs = names.map((column, i) =>
       columnSpec({ ...(typeOf(column) ?? columnSpec(given[i])), name: column })
     );
-    const table = { columns: names, specs, rows: [] };
+    const table = { columns: names, specs, rows: [], formulas: [] };
     allTables().set(name, table);
     if (Array.isArray(rows)) {
       for (const values of rows) table.rows.push(rowFrom('createTable', name, table, values));
@@ -326,7 +382,9 @@ export const flockTables = {
   },
   addTableRow(name, values) {
     const table = findTable('addTableRow', name);
-    if (table) table.rows.push(rowFrom('addTableRow', name, table, values));
+    if (!table) return;
+    table.rows.push(rowFrom('addTableRow', name, table, values));
+    recalculate(name, table, table.rows.length - 1);
   },
   insertTableRow(name, row, values) {
     const table = findTable('insertTableRow', name);
@@ -334,6 +392,7 @@ export const flockTables = {
     const index = Number(row);
     if (Number.isInteger(index) && index >= 0 && index <= table.rows.length) {
       table.rows.splice(index, 0, rowFrom('insertTableRow', name, table, values));
+      recalculate(name, table, index);
     } else {
       findRow('insertTableRow', table, name, row);
     }
@@ -342,32 +401,39 @@ export const flockTables = {
     const table = findTable('setTableRow', name);
     if (!table) return;
     const r = findRow('setTableRow', table, name, row);
-    if (r !== -1) table.rows[r] = rowFrom('setTableRow', name, table, values);
+    if (r === -1) return;
+    table.rows[r] = rowFrom('setTableRow', name, table, values);
+    recalculate(name, table, r);
   },
   addTableColumn(name, column, values) {
     const table = findTable('addTableColumn', name);
     if (!table) return;
-    const columns = uniqueColumns('addTableColumn', name, [...table.columns, column]);
-    const count = table.rows.length;
-    const given = values === undefined ? null : Array.isArray(values) ? values : [values];
-    if (given && given.length !== count) {
-      report('addTableColumn', 'table_column_length', { table: name, given: given.length, count });
-    }
-    table.columns = columns;
-    table.specs.push({ ...columnSpec(column), name: columns.at(-1) });
-    const c = columns.length - 1;
-    table.rows.forEach((row, i) =>
-      row.push(given && i < given.length ? typed('addTableColumn', name, table, c, given[i]) : '')
-    );
+    appendColumn('addTableColumn', name, table, column, values);
+    recalculate(name, table);
+  },
+  linkTableColumn(name, column, formula) {
+    const table = findTable('linkTableColumn', name);
+    if (!table || typeof formula !== 'function') return;
+    const wanted = String(cellValue(column));
+    const named = table.columns.includes(wanted)
+      ? wanted
+      : appendColumn('linkTableColumn', name, table, wanted);
+    const existing = table.formulas.find((each) => each.column === named);
+    if (existing) existing.formula = formula;
+    else table.formulas.push({ column: named, formula });
+    recalculate(name, table);
   },
   deleteTableColumn(name, column) {
     const table = findTable('deleteTableColumn', name);
     if (!table) return;
     const c = findColumn('deleteTableColumn', table, name, column);
     if (c === -1) return;
+    const removed = table.columns[c];
+    table.formulas = table.formulas.filter((each) => each.column !== removed);
     table.columns.splice(c, 1);
     table.specs.splice(c, 1);
     for (const row of table.rows) row.splice(c, 1);
+    recalculate(name, table);
   },
   deleteTableRow(name, row) {
     const table = findTable('deleteTableRow', name);
@@ -391,13 +457,15 @@ export const flockTables = {
     if (!table) return;
     const r = findRow('setTableValue', table, name, row);
     const c = findColumn('setTableValue', table, name, column);
-    if (r !== -1 && c !== -1) table.rows[r][c] = typed('setTableValue', name, table, c, value);
+    if (r === -1 || c === -1 || refuseLinked('setTableValue', table, name, c)) return;
+    table.rows[r][c] = typed('setTableValue', name, table, c, value);
+    recalculate(name, table, r);
   },
   setTableColumn(name, column, values) {
     const table = findTable('setTableColumn', name);
     if (!table) return;
     const c = findColumn('setTableColumn', table, name, column);
-    if (c === -1) return;
+    if (c === -1 || refuseLinked('setTableColumn', table, name, c)) return;
     const given = Array.isArray(values) ? values : [values];
     const count = table.rows.length;
     if (given.length !== count) {
@@ -406,6 +474,7 @@ export const flockTables = {
     table.rows.forEach((row, i) => {
       row[c] = i < given.length ? typed('setTableColumn', name, table, c, given[i]) : '';
     });
+    recalculate(name, table);
   },
   getTableColumn(name, column) {
     const table = findTable('getTableColumn', name);

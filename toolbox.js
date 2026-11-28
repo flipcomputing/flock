@@ -4527,6 +4527,27 @@ export function tableFlyoutBlocks(
     },
     {
       kind: 'block',
+      type: 'table_link_column',
+      keyword: 'formula',
+      fields: { TABLE, VAR: { name: 'row' } },
+      inputs: {
+        NAME: textShadow(translate('table_default_linked_column_name')),
+        VALUE: {
+          block: {
+            type: 'math_arithmetic',
+            fields: { OP: 'MULTIPLY' },
+            inputs: {
+              A: {
+                block: { type: 'table_row_value', inputs: { COLUMN: column, ROW: rowVariable } },
+              },
+              B: numberShadow(2),
+            },
+          },
+        },
+      },
+    },
+    {
+      kind: 'block',
       type: 'table_delete_column',
       fields: { TABLE },
       inputs: { COLUMN: column },

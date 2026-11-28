@@ -587,7 +587,120 @@ export function runTablesTests(flock) {
       });
     });
 
+    describe('linked columns', function () {
+      const total = (row) => flock.getRowValue(row, 'Price') * flock.getRowValue(row, 'Quantity');
+
+      function makeOrders() {
+        flock.createTable('Orders', ['Item', 'Price', 'Quantity']);
+        flock.addTableRow('Orders', ['Pen', 2, 3]);
+        flock.addTableRow('Orders', ['Book', 5, 1]);
+        flock.linkTableColumn('Orders', 'Total', total);
+      }
+
+      it('adds a column worked out from each row', function () {
+        makeOrders();
+        expect(flock.getTableColumnNames('Orders')).to.deep.equal([
+          'Item',
+          'Price',
+          'Quantity',
+          'Total',
+        ]);
+        expect(flock.getTableColumn('Orders', 'Total')).to.deep.equal([6, 5]);
+        expect(reported).to.deep.equal([]);
+      });
+
+      it('works out new rows given without the linked column', function () {
+        makeOrders();
+        flock.addTableRow('Orders', ['Bag', 10, 2]);
+        flock.insertTableRow('Orders', 0, ['Cap', 4, 2]);
+        expect(flock.getTableColumn('Orders', 'Total')).to.deep.equal([8, 6, 5, 20]);
+        expect(reported).to.deep.equal([]);
+      });
+
+      it('works out changed rows, cells and columns', function () {
+        makeOrders();
+        flock.setTableValue('Orders', 0, 'Quantity', 10);
+        flock.setTableRow('Orders', 1, ['Book', 6, 2]);
+        expect(flock.getTableColumn('Orders', 'Total')).to.deep.equal([20, 12]);
+        flock.setTableColumn('Orders', 'Price', [1, 1]);
+        expect(flock.getTableColumn('Orders', 'Total')).to.deep.equal([10, 2]);
+      });
+
+      it('keeps its values when rows are sorted or deleted', function () {
+        makeOrders();
+        flock.sortTable('Orders', 'Total', 'ASCENDING');
+        expect(flock.getTableColumn('Orders', 'Item')).to.deep.equal(['Book', 'Pen']);
+        expect(flock.getTableColumn('Orders', 'Total')).to.deep.equal([5, 6]);
+        flock.deleteTableRow('Orders', 0);
+        expect(flock.getTableColumn('Orders', 'Total')).to.deep.equal([6]);
+      });
+
+      it('refuses to set a linked cell or column', function () {
+        makeOrders();
+        flock.setTableValue('Orders', 0, 'Total', 99);
+        flock.setTableColumn('Orders', 'Total', [1, 2]);
+        expect(flock.getTableColumn('Orders', 'Total')).to.deep.equal([6, 5]);
+        expect(keys()).to.deep.equal(['table_column_linked', 'table_column_linked']);
+      });
+
+      it('replaces the formula when the column is linked again', function () {
+        makeOrders();
+        flock.linkTableColumn('Orders', 'Total', (row) => flock.getRowValue(row, 'Price'));
+        expect(flock.getTableColumnNames('Orders')).to.have.length(4);
+        expect(flock.getTableColumn('Orders', 'Total')).to.deep.equal([2, 5]);
+      });
+
+      it('lets a later linked column use an earlier one', function () {
+        makeOrders();
+        flock.linkTableColumn('Orders', 'Double', (row) => flock.getRowValue(row, 'Total') * 2);
+        flock.setTableValue('Orders', 1, 'Quantity', 3);
+        expect(flock.getTableColumn('Orders', 'Double')).to.deep.equal([12, 30]);
+      });
+
+      it('keeps its place in the order when linked again', function () {
+        makeOrders();
+        flock.linkTableColumn('Orders', 'Double', (row) => flock.getRowValue(row, 'Total') * 2);
+        flock.linkTableColumn('Orders', 'Total', (row) => flock.getRowValue(row, 'Price'));
+        expect(flock.getTableColumn('Orders', 'Double')).to.deep.equal([4, 10]);
+      });
+
+      it('gives blank cells when the formula fails', function () {
+        makeOrders();
+        flock.linkTableColumn('Orders', 'Broken', () => {
+          throw new Error('no');
+        });
+        flock.linkTableColumn('Orders', 'Nothing', () => NaN);
+        expect(flock.getTableColumn('Orders', 'Broken')).to.deep.equal(['', '']);
+        expect(flock.getTableColumn('Orders', 'Nothing')).to.deep.equal(['', '']);
+      });
+
+      it('stops calculating when the column is deleted', function () {
+        makeOrders();
+        flock.deleteTableColumn('Orders', 'Total');
+        flock.addTableRow('Orders', ['Bag', 10, 2]);
+        expect(flock.getTableColumnNames('Orders')).to.deep.equal(['Item', 'Price', 'Quantity']);
+        expect(reported).to.deep.equal([]);
+      });
+    });
+
     describe('generators', function () {
+      it('keeps a link formula whose text mentions await', function () {
+        const code = compileFlockProject(
+          project(
+            chain(
+              ...createBuildings(),
+              block('table_link_column', {
+                fields: { TABLE: table('Buildings'), VAR: { name: 'row' } },
+                inputs: { NAME: text('Note'), VALUE: text('await') },
+              })
+            )
+          )
+        );
+        expect(code, code).to.match(
+          /linkTableColumn\(Buildings, 'Note', \(\w+\) => \('await'\)\);/
+        );
+      });
+
       it('generates code that passes the code check', function () {
         const code = compileFlockProject(
           project(
@@ -840,6 +953,54 @@ export function runTablesTests(flock) {
         }
       };
 
+      it('keeps a linked column up to date as rows are added', async function () {
+        const orders = table('Orders');
+        const calculate = block('table_link_column', {
+          fields: { TABLE: orders, VAR: { name: 'row' } },
+          inputs: {
+            NAME: text('Total'),
+            VALUE: value(
+              block('math_arithmetic', {
+                fields: { OP: 'MULTIPLY' },
+                inputs: { A: value(rowValue('Price')), B: value(rowValue('Quantity')) },
+              })
+            ),
+          },
+        });
+        const totalOf = (row) =>
+          print(
+            value(
+              block('table_get_value', {
+                fields: { TABLE: orders },
+                inputs: { ROW: num(row), COLUMN: text('Total') },
+              })
+            )
+          );
+        await run(
+          project(
+            chain(
+              block('table_create', {
+                fields: { VAR: orders },
+                inputs: { COLUMNS: list(text('Item'), text('Price'), text('Quantity')) },
+              }),
+              block('table_add_row', {
+                fields: { TABLE: orders },
+                inputs: { VALUES: list(text('Pen'), num(2), num(3)) },
+              }),
+              calculate,
+              block('table_add_row', {
+                fields: { TABLE: orders },
+                inputs: { VALUES: list(text('Bag'), num(10), num(2)) },
+              }),
+              totalOf(0),
+              totalOf(1)
+            )
+          )
+        );
+        await waitForPrints(2);
+        expect(printed).to.deep.equal([6, 20]);
+      });
+
       it('loops over rows with their numbers and reads whole columns', async function () {
         const loop = block('table_for_each_row', {
           fields: { VAR: { name: 'row' }, INDEX: { name: 'count' }, TABLE: table('Buildings') },
@@ -1023,6 +1184,22 @@ export function runTablesTests(flock) {
         ).to.equal(true);
         expect(line.slice(0, line.indexOf('], ['))).to.include('Type');
         expect(code).to.match(/addTableColumn\(Letters, ['"]Colour['"]\)/);
+        expect(() => flock.prepareUserCode(code)).not.to.throw();
+      });
+    });
+
+    describe('reaction time example', function () {
+      it('records only the try and milliseconds and links the rest', async function () {
+        const res = await fetch('/examples/reaction_time.flock');
+        const code = compileFlockProject(await res.json());
+        expect(code).to.include(`Reactions = createTable("Reactions", ['Try', 'Milliseconds']);`);
+        const linked = [...code.matchAll(/linkTableColumn\(Reactions, '(\w+)'/g)];
+        expect(linked.map((match) => match[1])).to.deep.equal(['Seconds', 'Rating', 'Colour']);
+        expect(code).to.match(/addTableRow\(Reactions, \[\w+, \w+\]\)/);
+        expect(code).to.match(
+          /insertTableRow\(Reactions, 0, \['Average', .*getTableColumn\(Reactions, 'Milliseconds'\)/
+        );
+        expect(EXAMPLES.map((ex) => ex.i18nKey)).to.include('reaction_time');
         expect(() => flock.prepareUserCode(code)).not.to.throw();
       });
     });

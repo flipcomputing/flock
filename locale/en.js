@@ -443,6 +443,8 @@ export default {
   table_add_row_end_option: 'at end',
   table_add_row_at_option: 'at row',
   table_add_column: 'add column %1 to %2 with values %3',
+  table_link_column: 'link %1 of %2 to %3',
+  table_link_column_formula: '%1 for each row %2',
   table_delete_column: 'delete column %1 from %2',
   table_delete_row: 'delete %1 %2 %3 from %4',
   table_delete_row_option: 'row',
@@ -1369,6 +1371,7 @@ export default {
   tallest_buildings_tables_ui: 'Tallest buildings (tables)',
   letter_frequency_ui: 'Letter frequency',
   periodic_discovery_ui: 'Discovering the elements',
+  reaction_time_ui: 'Reaction time test',
   candy_dash_ui: 'Candy dash',
   flockenspiel_ui: 'Flockenspiel',
   pendant_ui: '3D-printable pendant',
@@ -1572,6 +1575,8 @@ export default {
   table_get_column_tooltip: 'All the values in a column, as a list.',
   table_column_names_tooltip: "The names of the table's columns, as a list.",
   table_delete_column_tooltip: 'Delete a column and its values from every row.',
+  table_link_column_tooltip:
+    'Link a column to a calculation on each row. The value blocks use the row variable to read the row\'s other columns. The column stays up to date: new and changed rows get their value too. Other blocks cannot set its cells.',
   table_add_column_tooltip:
     'Add a column to the end of the table. Give a list with one value for each row, in row order, or leave the values empty to start with blank cells.',
   table_get_row_tooltip:
@@ -1596,6 +1601,7 @@ export default {
   table_default_column_name: 'Name',
   table_default_value_column_name: 'Value',
   table_default_new_column_name: 'Score',
+  table_default_linked_column_name: 'Total',
   table_default_currency: 'USD',
   table_start_data_warning: 'Start data row %1: %2',
   table_column_missing_warning: "%1 doesn't have a column called '%2'. Its columns are: %3.",
@@ -1720,6 +1726,8 @@ export default {
   table_row_out_of_range_one: "{table} has 1 row (row 0), so there's no row {row}.",
   table_row_length: 'That row has {given} values but {table} has {count} columns.',
   table_column_length: 'That column has {given} values but {table} has {count} rows.',
+  table_column_linked:
+    'Column {column} in {table} is linked to a calculation, so it cannot be set. Change its link block instead.',
   table_duplicate_column:
     '{table} already has a column called {column}, so the copy is called {renamed}.',
   table_value_not_number: "Column {column} in {table} is for numbers, so '{value}' doesn't fit.",

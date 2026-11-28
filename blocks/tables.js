@@ -96,6 +96,7 @@ Blockly.fieldRegistry.register(TABLE_FIELD, FieldTableVariable);
 
 export const TABLE_COLUMN_MENU = 'table_column_menu';
 const TABLE_ADD_COLUMN = 'table_add_column';
+export const TABLE_LINK_COLUMN = 'table_link_column';
 const COLUMN_FIELD = 'field_table_column';
 
 const sameName = (a, b) => a?.toLowerCase() === b?.toLowerCase();
@@ -153,13 +154,20 @@ export function tableColumnInfo(workspace, tableName, renamed = null) {
     });
     layouts.add(JSON.stringify(layout));
   }
-  for (const adder of workspace?.getBlocksByType(TABLE_ADD_COLUMN, false) ?? []) {
+  const adders = [TABLE_ADD_COLUMN, TABLE_LINK_COLUMN].flatMap(
+    (type) => workspace?.getBlocksByType(type, false) ?? []
+  );
+  for (const adder of adders) {
     if (tableName !== undefined && !sameName(adder.getField('TABLE')?.getText(), tableName)) {
       continue;
     }
     const name = addedColumnName(adder, renamed);
     if (!name) {
       complete = false;
+      continue;
+    }
+    if (adder.type === TABLE_LINK_COLUMN && columns.includes(name)) {
+      named.set(adder.getInputTargetBlock('NAME').id, name);
       continue;
     }
     const unique = uniqueColumnNames([...columns, name]).at(-1);
@@ -179,7 +187,8 @@ export const tableColumns = (workspace, tableName) => tableColumnInfo(workspace,
 
 function loopTableFor(block, rowVariableId) {
   for (let outer = block.getSurroundParent(); outer; outer = outer.getSurroundParent()) {
-    if (outer.type === TABLE_LOOP_TYPE && outer.getFieldValue('VAR') === rowVariableId) {
+    const rowSource = outer.type === TABLE_LOOP_TYPE || outer.type === TABLE_LINK_COLUMN;
+    if (rowSource && outer.getFieldValue('VAR') === rowVariableId) {
       return outer.getField('TABLE')?.getText();
     }
   }
@@ -592,6 +601,27 @@ export function defineTableBlocks() {
     previousStatement: null,
     nextStatement: null,
   }));
+
+  defineTableBlock(
+    TABLE_LINK_COLUMN,
+    () => ({
+      args0: [
+        { type: 'input_value', name: 'NAME', check: 'String' },
+        tableField(),
+        { type: 'input_end_row' },
+      ],
+      message1: translate('table_link_column_formula'),
+      args1: [
+        { type: 'input_value', name: 'VALUE' },
+        { type: 'field_variable', name: 'VAR', variable: 'row' },
+      ],
+      previousStatement: null,
+      nextStatement: null,
+    }),
+    function () {
+      this.getField('VAR').defaultVariableName = 'row';
+    }
+  );
 
   defineTableBlock('table_delete_column', () => ({
     args0: [{ type: 'input_value', name: 'COLUMN', check: 'String' }, tableField()],

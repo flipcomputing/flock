@@ -36,6 +36,15 @@ export function registerTablesGenerators(javascriptGenerator) {
     return `addTableColumn(${tableVar(block)}, ${name}${values ? `, ${values}` : ''});\n`;
   };
 
+  javascriptGenerator.forBlock['table_link_column'] = function (block, generator) {
+    const row = generator.getVariableName(block.getFieldValue('VAR'));
+    const formula = value(block, 'VALUE', "''");
+    const code = formula.replace(/'(?:\\.|[^'\\])*'|"(?:\\.|[^"\\])*"|`(?:\\.|[^`\\])*`/g, '');
+    const body = /\bawait\b/.test(code) ? "''" : formula;
+    const name = value(block, 'NAME', '""');
+    return `linkTableColumn(${tableVar(block)}, ${name}, (${row}) => (${body}));\n`;
+  };
+
   javascriptGenerator.forBlock['table_delete_column'] = function (block) {
     return `deleteTableColumn(${tableVar(block)}, ${value(block, 'COLUMN', '""')});\n`;
   };

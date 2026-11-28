@@ -401,6 +401,8 @@ export default {
   table_add_row_end_option: 'al final', // ai
   table_add_row_at_option: 'en la fila', // ai
   table_add_column: 'añadir columna %1 a %2 con los valores %3', // ai
+  table_link_column: 'vincular %1 de %2 a %3', // ai
+  table_link_column_formula: '%1 para cada fila %2', // ai
   table_delete_column: 'borrar columna %1 de %2', // ai
   table_delete_row: 'borrar %1 %2 %3 de %4', // ai
   table_delete_row_option: 'fila', // ai
@@ -1269,6 +1271,7 @@ export default {
   tallest_buildings_ui: 'Edificios Más Altos', // human
   tallest_buildings_tables_ui: 'Edificios Más Altos (tablas)', // ai
   letter_frequency_ui: 'Frecuencia de letras', // ai
+  reaction_time_ui: 'Prueba de tiempo de reacción', // ai
   candy_dash_ui: 'Carrera de Dulces', // human
   flockenspiel_ui: 'Flockenspiel', // human
   pendant_ui: 'Colgante imprimible en 3D', // human
@@ -1473,6 +1476,8 @@ export default {
   table_get_column_tooltip: 'Todos los valores de una columna, como una lista.', // ai
   table_column_names_tooltip: 'Los nombres de las columnas de la tabla, como una lista.', // ai
   table_delete_column_tooltip: 'Borra una columna y sus valores de todas las filas.', // ai
+  table_link_column_tooltip:
+    'Vincula una columna a un cálculo sobre cada fila. Los bloques de valor usan la variable de fila para leer las otras columnas de la fila. La columna se mantiene al día: las filas nuevas y cambiadas también reciben su valor. Otros bloques no pueden cambiar sus celdas.', // ai
   table_add_column_tooltip:
     'Añade una columna al final de la tabla. Da una lista con un valor para cada fila, en el orden de las filas, o deja los valores vacíos para empezar con celdas en blanco.', // ai
   table_get_row_tooltip:
@@ -1497,6 +1502,7 @@ export default {
   table_default_column_name: 'Nombre', // ai
   table_default_value_column_name: 'Valor', // ai
   table_default_new_column_name: 'Puntos', // ai
+  table_default_linked_column_name: 'Total', // ai
   table_default_currency: 'EUR', // ai
   table_start_data_warning: 'Fila %1 de los datos iniciales: %2', // ai
   table_column_missing_warning: "%1 no tiene una columna llamada '%2'. Sus columnas son: %3.", // ai
@@ -1618,6 +1624,8 @@ export default {
   table_row_out_of_range_one: '{table} tiene 1 fila (la fila 0), así que no hay fila {row}.', // ai
   table_row_length: 'Esa fila tiene {given} valores, pero {table} tiene {count} columnas.', // ai
   table_column_length: 'Esa columna tiene {given} valores, pero {table} tiene {count} filas.', // ai
+  table_column_linked:
+    'La columna {column} de {table} está vinculada a un cálculo, así que no se puede cambiar. Cambia su bloque de vincular.', // ai
   table_duplicate_column:
     '{table} ya tiene una columna llamada {column}, así que la copia se llama {renamed}.', // ai
   table_value_not_number:
