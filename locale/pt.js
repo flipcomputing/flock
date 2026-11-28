@@ -282,6 +282,12 @@ export default {
   minutes: 'minutos',
   now: 'agora', // ai
   date_part: '%1 de %2', // ai
+  INT_option: 'inteiro', // ai
+  FLOAT_option: 'decimal', // ai
+  TEXT_option: 'texto', // ai
+  BOOLEAN_option: 'verdadeiro ou falso', // ai
+  BINARY_option: 'binário', // ai
+  HEX_option: 'hexadecimal', // ai
   year_option: 'ano', // ai
   month_option: 'mês', // ai
   day_option: 'dia', // ai
@@ -638,7 +644,8 @@ export default {
 
   // Tooltip translations - Math blocks
   random_seeded_int_tooltip: 'Gera um inteiro aleatório com uma semente.',
-  to_number_tooltip: 'Converte uma string em número inteiro ou decimal.',
+  to_number_tooltip:
+    'Converte em outro tipo, como inteiro, decimal, texto, verdadeiro ou falso, ou binário. Um inteiro retira tudo o que vem depois do ponto decimal. Verdadeiro e falso tornam-se 1 e 0. Só o texto true ou false, ou um número, se torna verdadeiro ou falso; 0 é falso. Binário e hexadecimal precisam de um número inteiro e dão texto, com as letras hexadecimais em maiúsculas. Uma entrada vazia, ou algo que não encaixa no tipo, dá um vazio.', // ai
 
   // Tooltip translations - Transform blocks
   move_by_xyz_tooltip: 'Move um objeto uma certa distância nas direções x, y e z.',

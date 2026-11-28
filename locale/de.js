@@ -283,6 +283,12 @@ export default {
   minutes: 'Minuten',
   now: 'jetzt', // ai
   date_part: '%1 von %2', // ai
+  INT_option: 'Ganzzahl', // ai
+  FLOAT_option: 'Dezimalzahl', // ai
+  TEXT_option: 'Text', // ai
+  BOOLEAN_option: 'wahr oder falsch', // ai
+  BINARY_option: 'Binär', // ai
+  HEX_option: 'Hexadezimal', // ai
   year_option: 'Jahr', // ai
   month_option: 'Monat', // ai
   day_option: 'Tag', // ai
@@ -777,7 +783,8 @@ export default {
 
   // Tooltip translations - Math blocks
   random_seeded_int_tooltip: 'Erzeuge eine zufällige Ganzzahl mit Seed.',
-  to_number_tooltip: 'Konvertiere eine Zeichenkette in eine Ganzzahl oder Gleitkommazahl.',
+  to_number_tooltip:
+    'Konvertiert in einen anderen Typ, zum Beispiel Ganzzahl, Dezimalzahl, Text, wahr oder falsch, oder Binär. Eine Ganzzahl lässt alles nach dem Dezimalpunkt weg. Wahr und falsch werden zu 1 und 0. Nur der Text true oder false oder eine Zahl wird zu wahr oder falsch; 0 ist falsch. Binär und Hexadezimal brauchen eine ganze Zahl und ergeben Text, mit Großbuchstaben für Hexadezimal. Leere Eingaben oder alles, was nicht zum Typ passt, ergeben ein leeres Feld.', // ai
 
   // Tooltip translations - Transform blocks
   move_by_xyz_tooltip: 'Bewege ein Objekt um den angegebenen Wert in X-, Y- und Z-Richtung.',

@@ -281,6 +281,12 @@ export default {
   minutes: 'minuter',
   now: 'nu', // ai
   date_part: '%1 av %2', // ai
+  INT_option: 'heltal', // ai
+  FLOAT_option: 'decimaltal', // ai
+  TEXT_option: 'text', // ai
+  BOOLEAN_option: 'sant eller falskt', // ai
+  BINARY_option: 'binär', // ai
+  HEX_option: 'hexadecimal', // ai
   year_option: 'år', // ai
   month_option: 'månad', // ai
   day_option: 'dag', // ai
@@ -631,7 +637,8 @@ export default {
 
   // Tooltip translations - Math blocks
   random_seeded_int_tooltip: 'Genererar ett slumpmässigt heltal med frö.',
-  to_number_tooltip: 'Konverterar en sträng till ett heltal eller flyttal.',
+  to_number_tooltip:
+    'Konverterar till en annan typ, till exempel heltal, decimaltal, text, sant eller falskt, eller binär. Ett heltal tar bort allt efter decimaltecknet. Sant och falskt blir 1 och 0. Bara texten true eller false, eller ett tal, blir sant eller falskt; 0 är falskt. Binär och hexadecimal behöver ett heltal och ger text, med versaler för hexadecimala bokstäver. Tom inmatning, eller något som inte passar typen, ger ett tomt värde.', // ai
 
   // Tooltip translations - Transform blocks
   move_by_xyz_tooltip: 'Flytta ett objekt ett angivet värde i x-, y- och z-led.',

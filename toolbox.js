@@ -4660,6 +4660,7 @@ const toolboxData = {
           },
         ]
       : []),
+    { kind: 'block', type: 'to_number', keyword: 'ton' },
     toolboxVariables,
     toolboxLists,
     ...(isFeatureEnabled('dataScience') ? [toolboxTables] : []),
@@ -4799,11 +4800,6 @@ const toolboxMath = {
       type: 'vector',
       keyword: 'vec',
       ...vectorBlockSpec(0, 0, 0),
-    },
-    {
-      kind: 'block',
-      type: 'to_number',
-      keyword: 'ton',
     },
     {
       kind: 'block',

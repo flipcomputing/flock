@@ -320,6 +320,12 @@ export default {
   minutes: 'minutes',
   now: 'now',
   date_part: '%1 of %2',
+  INT_option: 'integer',
+  FLOAT_option: 'decimal',
+  TEXT_option: 'text',
+  BOOLEAN_option: 'true or false',
+  BINARY_option: 'binary',
+  HEX_option: 'hexadecimal',
   year_option: 'year',
   month_option: 'month',
   day_option: 'day',
@@ -831,7 +837,8 @@ export default {
 
   // Tooltip translations - Math blocks
   random_seeded_int_tooltip: 'Generate a random integer with a seed.',
-  to_number_tooltip: 'Convert a string to an integer or float.',
+  to_number_tooltip:
+    'Convert to another type, such as an integer, a decimal, text, true or false, or binary. An integer drops anything after the decimal point. True and false become 1 and 0. Only the text true or false, or a number, becomes true or false; 0 is false. Binary and hexadecimal need a whole number and give text, with hexadecimal letters in capitals. Empty input, or anything that does not fit the type, gives a blank.',
   convert_range_tooltip:
     'Change a number from one range to another. The first low becomes the second low, the first high becomes the second high, and numbers in between are spread evenly. Numbers outside the first range give numbers outside the second range. Use constrain to keep them inside.',
   vector_tooltip: 'A position or direction made from x, y and z.',

@@ -283,6 +283,12 @@ export default {
   minutes: 'minutach',
   now: 'teraz', // ai
   date_part: '%1 z %2', // ai
+  INT_option: 'liczbę całkowitą', // ai
+  FLOAT_option: 'liczbę dziesiętną', // ai
+  TEXT_option: 'tekst', // ai
+  BOOLEAN_option: 'prawda lub fałsz', // ai
+  BINARY_option: 'dwójkowy', // ai
+  HEX_option: 'szesnastkowy', // ai
   year_option: 'rok', // ai
   month_option: 'miesiąc', // ai
   day_option: 'dzień', // ai
@@ -631,7 +637,8 @@ export default {
 
   // Tooltip translations - Math blocks
   random_seeded_int_tooltip: 'Wygeneruj losową liczbę całkowitą z ziarnem.',
-  to_number_tooltip: 'Konwertuje ciąg na liczbę całkowitą lub zmiennoprzecinkową.',
+  to_number_tooltip:
+    'Konwertuje na inny typ, na przykład liczbę całkowitą, dziesiętną, tekst, prawdę lub fałsz albo system dwójkowy. Liczba całkowita pomija wszystko po przecinku. Prawda i fałsz stają się 1 i 0. Tylko tekst true lub false albo liczba staje się prawdą lub fałszem; 0 to fałsz. System dwójkowy i szesnastkowy wymagają liczby całkowitej i dają tekst, z wielkimi literami w szesnastkowym. Puste wejście lub coś, co nie pasuje do typu, daje puste pole.', // ai
 
   // Tooltip translations - Transform blocks
   move_by_xyz_tooltip: 'Przesuń obiekt o określoną wartość w osiach x, y i z.',

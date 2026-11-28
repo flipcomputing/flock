@@ -40,21 +40,23 @@ export function registerMathGenerators(javascriptGenerator) {
 
   // Convert to integer -----------------------------------------------
   javascriptGenerator.forBlock['to_number'] = function (block) {
-    const string = javascriptGenerator.valueToCode(
-      block,
-      'STRING',
-      javascriptGenerator.ORDER_ATOMIC
-    );
-    const conversionType = block.getFieldValue('TYPE');
-
-    let code;
-    if (conversionType === 'INT') {
-      code = `parseInt(${string})`;
-    } else {
-      code = `parseFloat(${string})`;
-    }
-
-    return [code, javascriptGenerator.ORDER_NONE];
+    const string =
+      javascriptGenerator.valueToCode(block, 'STRING', javascriptGenerator.ORDER_NONE) || "''";
+    const field = block.getFieldValue('TYPE');
+    const types = [
+      'INT',
+      'TEXT',
+      'BOOLEAN',
+      'BINARY',
+      'HEX',
+      'MONEY',
+      'DATE',
+      'TIME',
+      'DATETIME',
+      'COLOUR',
+    ];
+    const type = types.includes(field) ? field : 'FLOAT';
+    return [`toNumber(${string}, '${type}')`, javascriptGenerator.ORDER_FUNCTION_CALL];
   };
 
   javascriptGenerator.forBlock['convert_range'] = function (block) {

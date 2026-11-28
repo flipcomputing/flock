@@ -72,6 +72,84 @@ export function runMathTests(flock) {
       });
     });
 
+    describe('toNumber', function () {
+      it('should convert text to an integer or decimal', function () {
+        expect(flock.toNumber('42', 'INT')).to.equal(42);
+        expect(flock.toNumber('3.7', 'INT')).to.equal(3);
+        expect(flock.toNumber('3.7', 'FLOAT')).to.equal(3.7);
+      });
+
+      it('should give blank for empty input', function () {
+        expect(flock.toNumber('', 'INT')).to.equal('');
+        expect(flock.toNumber('   ', 'FLOAT')).to.equal('');
+        expect(flock.toNumber(null, 'FLOAT')).to.equal('');
+        expect(flock.toNumber(undefined, 'INT')).to.equal('');
+      });
+
+      it('should give blank for text that is not a number', function () {
+        expect(flock.toNumber('abc', 'INT')).to.equal('');
+        expect(flock.toNumber('12px', 'FLOAT')).to.equal('');
+      });
+
+      it('should ignore commas and spaces like table number cells', function () {
+        expect(flock.toNumber('1,234', 'INT')).to.equal(1234);
+        expect(flock.toNumber('1,234.5', 'FLOAT')).to.equal(1234.5);
+        expect(flock.toNumber(' 1 000 ', 'INT')).to.equal(1000);
+      });
+
+      it('should convert whole numbers to binary and uppercase hexadecimal text', function () {
+        expect(flock.toNumber(10, 'BINARY')).to.equal('1010');
+        expect(flock.toNumber('255', 'HEX')).to.equal('FF');
+        expect(flock.toNumber(-5, 'BINARY')).to.equal('-101');
+        expect(flock.toNumber(2.5, 'BINARY')).to.equal('');
+        expect(flock.toNumber('abc', 'HEX')).to.equal('');
+      });
+
+      it('should read prefixed binary and hexadecimal text', function () {
+        expect(flock.toNumber('0b1010', 'INT')).to.equal(10);
+        expect(flock.toNumber('0xFF', 'INT')).to.equal(255);
+      });
+
+      it('should convert true and false to 1 and 0', function () {
+        expect(flock.toNumber(true, 'INT')).to.equal(1);
+        expect(flock.toNumber(false, 'FLOAT')).to.equal(0);
+        expect(flock.toNumber(true, 'BINARY')).to.equal('1');
+        expect(flock.toNumber(false, 'HEX')).to.equal('0');
+      });
+
+      it('should convert only true/false text and numbers to true or false', function () {
+        expect(flock.toNumber('true', 'BOOLEAN')).to.equal(true);
+        expect(flock.toNumber(' FALSE ', 'BOOLEAN')).to.equal(false);
+        expect(flock.toNumber(0, 'BOOLEAN')).to.equal(false);
+        expect(flock.toNumber('2', 'BOOLEAN')).to.equal(true);
+        expect(flock.toNumber(false, 'BOOLEAN')).to.equal(false);
+        expect(flock.toNumber('yes', 'BOOLEAN')).to.equal('');
+        expect(flock.toNumber('', 'BOOLEAN')).to.equal('');
+      });
+
+      it('should convert to table column types the way table cells do', function () {
+        expect(flock.toNumber('$12.499', 'MONEY')).to.equal(12.5);
+        expect(flock.toNumber('2026-1-5', 'DATE')).to.equal('2026-01-05');
+        expect(flock.toNumber('2026-02-30', 'DATE')).to.equal('');
+        expect(flock.toNumber('2:30 pm', 'TIME')).to.equal('14:30');
+        expect(flock.toNumber('2026-11-28 9:05', 'DATETIME')).to.equal('2026-11-28 09:05');
+        expect(flock.toNumber('red', 'COLOUR')).to.equal('red');
+        expect(flock.toNumber('#FF0000', 'COLOUR')).to.equal('#ff0000');
+        expect(flock.toNumber('not a colour', 'COLOUR')).to.equal('');
+      });
+
+      it('should accept numbers and convert to text', function () {
+        expect(flock.toNumber(3.7, 'INT')).to.equal(3);
+        expect(flock.toNumber(-3.7, 'INT')).to.equal(-3);
+        expect(flock.toNumber(12, 'TEXT')).to.equal('12');
+        expect(flock.toNumber('', 'TEXT')).to.equal('');
+        expect(flock.toNumber(flock.createVector3(1, 2, 3), 'TEXT')).to.equal('(1, 2, 3)');
+        expect(flock.toNumber(flock.createVector3(1, 2, 3), 'INT')).to.equal('');
+        expect(flock.toNumber([1, flock.createVector3(1, 2, 3)], 'TEXT')).to.equal('1,(1, 2, 3)');
+        expect(flock.toNumber(Object.create(null), 'TEXT')).to.equal('');
+      });
+    });
+
     describe('convertRange', function () {
       it('should spread numbers evenly from one range to another', function () {
         expect(flock.convertRange(50, 0, 100, 0, 10)).to.equal(5);

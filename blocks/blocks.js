@@ -4,6 +4,7 @@ import * as BlockDynamicConnection from '@blockly/block-dynamic-connection';
 import { ScrollBlockDragger, ScrollMetricsManager } from '@blockly/plugin-scroll-options';
 import { toolbox, categoryColours } from '../toolbox.js';
 import { translate, getTooltip, getDropdownOption, getOption } from '../main/translation.js';
+import { isFeatureEnabled } from '../main/features.js';
 import { flock } from '../flock.js';
 
 import {
@@ -345,6 +346,49 @@ export function placementOptions(first, centerLabel = 'PLACE_CENTER') {
       'PLACE_BEHIND',
     ].map(getDropdownOption),
   ];
+}
+
+const CONVERT_TYPES = ['INT', 'FLOAT', 'TEXT', 'BOOLEAN', 'BINARY', 'HEX'];
+const CONVERT_DATA_TYPES = [
+  ['money', 'MONEY'],
+  ['date', 'DATE'],
+  ['time', 'TIME'],
+  ['datetime', 'DATETIME'],
+  ['color', 'COLOUR'],
+];
+
+function convertTypeOptions(current) {
+  const data = CONVERT_DATA_TYPES.filter(
+    ([, value]) => isFeatureEnabled('dataScience') || value === current
+  );
+  return [
+    ...CONVERT_TYPES.map(getDropdownOption),
+    ...data.map(([key, value]) => [translate(`table_column_type_${key}`), value]),
+  ];
+}
+
+class FieldConvertType extends Blockly.FieldDropdown {
+  constructor() {
+    super(function () {
+      return convertTypeOptions(this.getValue());
+    });
+  }
+
+  static fromJson() {
+    return new FieldConvertType();
+  }
+
+  getOptions() {
+    return super.getOptions(false);
+  }
+
+  doClassValidation_(value) {
+    return convertTypeOptions(value).some((option) => option[1] === value) ? value : null;
+  }
+}
+
+if (!Blockly.registry.hasItem(Blockly.registry.Type.FIELD, 'field_convert_type')) {
+  Blockly.fieldRegistry.register('field_convert_type', FieldConvertType);
 }
 
 export function getHelpUrlFor(_blockType) {
@@ -1927,24 +1971,18 @@ export function defineBlocks() {
           {
             type: 'input_value',
             name: 'STRING',
-            check: 'String',
           },
           {
-            type: 'field_dropdown',
+            type: 'field_convert_type',
             name: 'TYPE',
-            options: [
-              ['integer', 'INT'],
-              ['float', 'FLOAT'],
-            ],
           },
         ],
         inputsInline: true,
-        output: 'Number',
-        colour: 230,
+        output: null,
         tooltip: getTooltip('to_number'),
       });
       this.setHelpUrl(getHelpUrlFor(this.type));
-      this.setStyle('math_blocks');
+      this.setStyle('variable_blocks');
     },
   };
 

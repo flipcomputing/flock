@@ -283,6 +283,12 @@ export default {
   minutes: 'minuti',
   now: 'adesso', // ai
   date_part: '%1 di %2', // ai
+  INT_option: 'intero', // ai
+  FLOAT_option: 'decimale', // ai
+  TEXT_option: 'testo', // ai
+  BOOLEAN_option: 'vero o falso', // ai
+  BINARY_option: 'binario', // ai
+  HEX_option: 'esadecimale', // ai
   year_option: 'anno', // ai
   month_option: 'mese', // ai
   day_option: 'giorno', // ai
@@ -631,7 +637,8 @@ export default {
 
   // Tooltip translations - Math blocks
   random_seeded_int_tooltip: 'Genera un numero intero casuale con un seed.',
-  to_number_tooltip: 'Converte una stringa in intero o float.',
+  to_number_tooltip:
+    'Converte in un altro tipo, come intero, decimale, testo, vero o falso, o binario. Un intero toglie tutto dopo la virgola. Vero e falso diventano 1 e 0. Solo il testo true o false, o un numero, diventa vero o falso; 0 è falso. Binario ed esadecimale richiedono un numero intero e danno testo, con le lettere esadecimali maiuscole. Un input vuoto, o ciò che non corrisponde al tipo, dà un vuoto.', // ai
 
   // Tooltip translations - Transform blocks
   move_by_xyz_tooltip: 'Muove un oggetto di una certa quantità in x, y e z.',

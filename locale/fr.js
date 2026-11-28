@@ -282,6 +282,12 @@ export default {
   minutes: 'minutes',
   now: 'maintenant', // ai
   date_part: '%1 de %2', // ai
+  INT_option: 'entier', // ai
+  FLOAT_option: 'décimal', // ai
+  TEXT_option: 'texte', // ai
+  BOOLEAN_option: 'vrai ou faux', // ai
+  BINARY_option: 'binaire', // ai
+  HEX_option: 'hexadécimal', // ai
   year_option: 'année', // ai
   month_option: 'mois', // ai
   day_option: 'jour', // ai
@@ -640,7 +646,8 @@ export default {
 
   // Tooltip translations - Math blocks
   random_seeded_int_tooltip: 'Génère un entier aléatoire avec une graine.',
-  to_number_tooltip: 'Convertit une chaîne en entier ou en nombre flottant.',
+  to_number_tooltip:
+    'Convertit vers un autre type, comme un entier, un décimal, du texte, vrai ou faux, ou le binaire. Un entier enlève tout ce qui suit la virgule. Vrai et faux deviennent 1 et 0. Seul le texte true ou false, ou un nombre, devient vrai ou faux ; 0 est faux. Binaire et hexadécimal demandent un nombre entier et donnent du texte, avec les lettres hexadécimales en majuscules. Une entrée vide, ou ce qui ne correspond pas au type, donne un vide.', // ai
 
   // Tooltip translations - Transform blocks
   move_by_xyz_tooltip: "Déplace un objet d'une certaine valeur selon X, Y et Z.",

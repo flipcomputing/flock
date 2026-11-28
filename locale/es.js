@@ -292,6 +292,12 @@ export default {
   minutes: 'minutos', // human
   now: 'ahora', // ai
   date_part: '%1 de %2', // ai
+  INT_option: 'entero', // ai
+  FLOAT_option: 'decimal', // ai
+  TEXT_option: 'texto', // ai
+  BOOLEAN_option: 'verdadero o falso', // ai
+  BINARY_option: 'binario', // ai
+  HEX_option: 'hexadecimal', // ai
   year_option: 'año', // ai
   month_option: 'mes', // ai
   day_option: 'día', // ai
@@ -764,7 +770,8 @@ export default {
 
   // Tooltip translations - Math blocks
   random_seeded_int_tooltip: 'Generar un numero entero aleatorio con una semilla.', // human
-  to_number_tooltip: 'Convertir una cadena a un numero entero o un flotante', // human
+  to_number_tooltip:
+    'Convierte a otro tipo, como un entero, un decimal, texto, verdadero o falso, o binario. Un entero quita lo que va después del punto decimal. Verdadero y falso se convierten en 1 y 0. Solo el texto true o false, o un número, se convierte en verdadero o falso; 0 es falso. Binario y hexadecimal necesitan un número entero y dan texto, con las letras hexadecimales en mayúsculas. Una entrada vacía, o algo que no encaja con el tipo, da un vacío.', // ai
   convert_range_tooltip:
     'Cambia un número de un rango a otro. El primer mínimo se convierte en el segundo mínimo, el primer máximo en el segundo máximo, y los números intermedios se reparten de forma uniforme. Los números fuera del primer rango dan números fuera del segundo rango. Usa limitar para mantenerlos dentro.', // ai
 
